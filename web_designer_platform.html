@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة تصميم وتخصيص الويب الاحترافية</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Links -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700;900&family=Amiri:wght@400;700&family=Readex+Pro:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Animate.css for animations -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #4f46e5;
+            --bg-color: #f8fafc;
+            --text-color: #1e293b;
+            --font-family: 'Cairo', sans-serif;
+        }
+        body {
+            font-family: var(--font-family);
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        .preview-frame {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-family);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-3 flex items-center justify-between shrink-0 z-20">
+        <div class="flex items-center space-x-3 space-x-reverse">
+            <div class="bg-indigo-600 text-white p-2 rounded-xl shadow-lg shadow-indigo-500/30">
+                <i class="fa-solid fa-wand-magic-sparkles text-xl"></i>
+            </div>
+            <div>
+                <h1 class="font-black text-lg tracking-wide text-white">منصة صانع الويب</h1>
+                <p class="text-xs text-slate-400">صمم صفحتك الاحترافية بكل سهولة</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center space-x-3 space-x-reverse">
+            <button onclick="triggerLoaderPreview()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-semibold transition border border-slate-700 flex items-center gap-2">
+                <i class="fa-solid fa-spinner"></i> معاينة شاشة التحميل
+            </button>
+            <button onclick="exportCode()" class="px-5 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-lg text-sm font-bold shadow-lg shadow-indigo-600/20 transition flex items-center gap-2">
+                <i class="fa-solid fa-code"></i> تصدير الكود
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="flex-1 flex overflow-hidden">
+        
+        <!-- Sidebar Controls (Right side in Arabic Layout) -->
+        <aside class="w-96 bg-slate-900 border-l border-slate-800 flex flex-col z-10 shrink-0">
+            <!-- Tabs Header -->
+            <div class="grid grid-cols-4 bg-slate-950 p-2 border-b border-slate-800 text-center text-xs font-bold text-slate-400">
+                <button onclick="switchTab('template')" id="tab-template" class="py-2.5 rounded-lg bg-indigo-600 text-white transition flex flex-col items-center gap-1">
+                    <i class="fa-solid fa-layer-group"></i> القالب
+                </button>
+                <button onclick="switchTab('style')" id="tab-style" class="py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition flex flex-col items-center gap-1">
+                    <i class="fa-solid fa-palette"></i> الهوية
+                </button>
+                <button onclick="switchTab('effects')" id="tab-effects" class="py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition flex flex-col items-center gap-1">
+                    <i class="fa-solid fa-wand-sparkles"></i> الحركات
+                </button>
+                <button onclick="switchTab('content')" id="tab-content" class="py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition flex flex-col items-center gap-1">
+                    <i class="fa-solid fa-pen-nib"></i> المحتوى
+                </button>
+            </div>
+
+            <!-- Tabs Body Content -->
+            <div class="flex-1 overflow-y-auto p-5 space-y-6">
+                
+                <!-- 1. Templates Tab -->
+                <div id="content-template" class="space-y-4 tab-pane">
+                    <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider">اختر قالب الموقع الأساسي</h3>
+                    <div class="grid grid-cols-1 gap-3">
+                        <div onclick="selectTemplate('saas')" class="template-card border-2 border-indigo-600 bg-slate-800/60 p-4 rounded-xl cursor-pointer hover:border-indigo-500 transition">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="font-bold text-white text-sm">منصة برمجية (SaaS)</span>
+                                <span class="bg-indigo-500/20 text-indigo-400 text-xs px-2 py-0.5 rounded">حديث</span>
+                            </div>
+                            <p class="text-xs text-slate-400">مثالي للشركات التقنية والمنتجات الرقمية الحديثة.</p>
+                        </div>
+                        <div onclick="selectTemplate('agency')" class="template-card border-2 border-slate-700 bg-slate-800/30 p-4 rounded-xl cursor-pointer hover:border-slate-500 transition">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="font-bold text-white text-sm">وكالة إبداعية (Agency)</span>
+                                <span class="bg-slate-700 text-slate-300 text-xs px-2 py-0.5 rounded">أنيق</span>
+                            </div>
+                            <p class="text-xs text-slate-400">مناسب للمستقلين، الوكالات التصميمية، والمعارض الفنية.</p>
+                        </div>
+                        <div onclick="selectTemplate('portfolio')" class="template-card border-2 border-slate-700 bg-slate-800/30 p-4 rounded-xl cursor-pointer hover:border-slate-500 transition">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="font-bold text-white text-sm">سيرة ذاتية / أعمال شخصية</span>
+                                <span class="bg-slate-700 text-slate-300 text-xs px-2 py-0.5 rounded">بسيط</span>
+                            </div>
+                            <p class="text-xs text-slate-400">يعرض أعمالك الشخصية بطريقة جذابة واحترافية.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Style & Colors Tab -->
+                <div id="content-style" class="space-y-5 tab-pane hidden">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-2">شعار الموقع (Logo)</label>
+                        <div class="flex items-center gap-3">
+                            <label class="flex-1 flex flex-col items-center px-4 py-3 bg-slate-800 text-slate-300 rounded-xl border border-dashed border-slate-600 cursor-pointer hover:bg-slate-700 transition">
+                                <i class="fa-solid fa-cloud-arrow-up mb-1 text-indigo-400 text-lg"></i>
+                                <span class="text-xs">اختر ملف الشعار</span>
+                                <input type="file" id="logoInput" accept="image/*" class="hidden" onchange="handleLogoUpload(event)">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-300">لون الطابع الأساسي</label>
+                        <div class="grid grid-cols-5 gap-2">
+                            <button onclick="setPrimaryColor('#6366f1', '#4f46e5')" class="h-9 rounded-lg bg-indigo-500 border-2 border-white shadow"></button>
+                            <button onclick="setPrimaryColor('#0ea5e9', '#0284c7')" class="h-9 rounded-lg bg-sky-500 border-2 border-transparent hover:border-white shadow"></button>
+                            <button onclick="setPrimaryColor('#10b981', '#059669')" class="h-9 rounded-lg bg-emerald-500 border-2 border-transparent hover:border-white shadow"></button>
+                            <button onclick="setPrimaryColor('#f59e0b', '#d97706')" class="h-9 rounded-lg bg-amber-500 border-2 border-transparent hover:border-white shadow"></button>
+                            <button onclick="setPrimaryColor('#ec4899', '#db2777')" class="h-9 rounded-lg bg-pink-500 border-2 border-transparent hover:border-white shadow"></button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-300">النمط العام (الطابع)</label>
+                        <select id="bgThemeSelect" onchange="updateBgTheme(this.value)" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                            <option value="light">فاتح نظيف (Clean Light)</option>
+                            <option value="dark">داكن أنيق (Dark Mode)</option>
+                            <option value="dim">داكن رمادي (Dim Slate)</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-300">نوع الخط الأساسي</label>
+                        <select id="fontSelect" onchange="updateFont(this.value)" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                            <option value="'Cairo', sans-serif">Cairo (عصري وواضح)</option>
+                            <option value="'Tajawal', sans-serif">Tajawal (ناعم وانسيابي)</option>
+                            <option value="'Readex Pro', sans-serif">Readex Pro (حديث وتقني)</option>
+                            <option value="'Amiri', serif">Amiri (كلاسيكي عربي)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 3. Animations & Loaders Tab -->
+                <div id="content-effects" class="space-y-5 tab-pane hidden">
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-300">تأثيرات حركة العناصر (Animations)</label>
+                        <select id="animationSelect" onchange="updateAnimation(this.value)" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                            <option value="animate__fadeIn">ظهور تدريجي (Fade In)</option>
+                            <option value="animate__fadeInUp">صعود للأعلى (Fade In Up)</option>
+                            <option value="animate__zoomIn">تكبير تدريجي (Zoom In)</option>
+                            <option value="animate__bounceIn">قفزة مرنة (Bounce In)</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-300">شاشة التحميل والانتظار (Loader Style)</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="setLoaderStyle('spinner')" class="p-3 bg-slate-800 border border-indigo-600 rounded-xl text-xs font-bold text-white hover:bg-slate-700 transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-spinner animate-spin"></i> دائرة دوارة
+                            </button>
+                            <button onclick="setLoaderStyle('pulse')" class="p-3 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-white hover:bg-slate-700 transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-circle-notch animate-pulse"></i> نبضات إشعاع
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Content Tab -->
+                <div id="content-content" class="space-y-4 tab-pane hidden">
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-300">عنوان الموقع الرئيسي (Hero Title)</label>
+                        <input type="text" id="inputTitle" oninput="updateTextContent('heroTitle', this.value)" value="ابنِ مستقبلك الرقمي باحترافية كاملة" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-300">النص التوضيحي الفرعي</label>
+                        <textarea id="inputSubtitle" oninput="updateTextContent('heroSubtitle', this.value)" rows="3" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">منصة متكاملة تمنحك أدوات مذهلة لإطلاق موقعك الإلكتروني بتصميم فائق الجودة وسرعة فائقة.</textarea>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-300">نص الزر البارز (CTA Button)</label>
+                        <input type="text" id="inputBtn" oninput="updateTextContent('heroBtn', this.value)" value="ابدأ مجاناً الآن" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+
+            </div>
+        </aside>
+
+        <!-- Live Preview Area -->
+        <main class="flex-1 flex flex-col bg-slate-950 p-6 overflow-y-auto items-center justify-center relative">
+            
+            <!-- Window Container Simulator -->
+            <div id="previewContainer" class="w-full max-w-5xl h-full max-h-[850px] preview-frame rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-800 transition-all duration-300 animate__animated animate__fadeIn">
+                
+                <!-- Browser Header Simulator -->
+                <div class="bg-slate-200 dark:bg-slate-900 px-4 py-2.5 flex items-center justify-between border-b border-slate-300 dark:border-slate-800 shrink-0">
+                    <div class="flex items-center space-x-2 space-x-reverse">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-amber-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 px-4 py-1 rounded-lg text-xs text-slate-500 dark:text-slate-400 w-1/2 text-center border border-slate-300 dark:border-slate-700 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-lock text-xs text-emerald-500"></i> https://your-brand.web-builder.io
+                    </div>
+                    <div class="w-16"></div>
+                </div>
+
+                <!-- Page Inner Content -->
+                <div class="flex-1 overflow-y-auto flex flex-col justify-between">
+                    
+                    <!-- Navbar -->
+                    <header class="px-8 py-4 flex items-center justify-between border-b border-slate-200/40 dark:border-slate-800/40">
+                        <div class="flex items-center gap-3">
+                            <div id="logoContainer" class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-md">
+                                <i class="fa-solid fa-bolt"></i>
+                            </div>
+                            <span class="font-black text-lg tracking-tight" id="brandNameText">هويتك</span>
+                        </div>
+                        <nav class="hidden md:flex items-center space-x-6 space-x-reverse text-sm font-semibold opacity-80">
+                            <a href="#" class="hover:text-indigo-600 transition">الرئيسية</a>
+                            <a href="#" class="hover:text-indigo-600 transition">المميزات</a>
+                            <a href="#" class="hover:text-indigo-600 transition">الأسعار</a>
+                            <a href="#" class="hover:text-indigo-600 transition">اتصل بنا</a>
+                        </nav>
+                        <div>
+                            <button id="previewBtnTop" class="px-4 py-2 text-white text-xs font-bold rounded-lg shadow transition" style="background-color: var(--primary-color);">دخول العميل</button>
+                        </div>
+                    </header>
+
+                    <!-- Dynamic Template Body -->
+                    <div id="templateBodyContent" class="px-8 py-12 flex-1 flex flex-col justify-center items-center text-center max-w-3xl mx-auto">
+                        <!-- Dynamic rendered content based on template -->
+                    </div>
+
+                    <!-- Footer -->
+                    <footer class="px-8 py-4 border-t border-slate-200/40 dark:border-slate-800/40 text-center text-xs opacity-60">
+                        جميع Derechos محفوظة © 2026 - تم التصميم عبر منصة بناء الويب الذكية.
+                    </footer>
+
+                </div>
+            </div>
+
+            <!-- Loader Simulation Overlay (Hidden by default) -->
+            <div id="loaderOverlay" class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center hidden">
+                <div class="flex flex-col items-center space-y-4">
+                    <div id="activeLoaderIcon" class="text-indigo-500 text-5xl">
+                        <i class="fa-solid fa-spinner animate-spin"></i>
+                    </div>
+                    <p class="text-sm font-bold text-white tracking-wider">جاري تحميل الصفحة...</p>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="exportModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl p-6 shadow-2xl flex flex-col space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-white text-base">كود الموقع المُصدّر (HTML/CSS)</h3>
+                <button onclick="closeExportModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 max-h-80 overflow-y-auto">
+                <pre id="exportedCodePre" class="text-xs text-indigo-300 font-mono text-left" dir="ltr"></pre>
+            </div>
+            <div class="flex justify-end gap-3">
+                <button onclick="copyCode()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-bold transition">نسخ الكود</button>
+                <button onclick="closeExportModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm font-semibold transition">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Engine -->
+    <script>
+        // Application State
+        let state = {
+            template: 'saas',
+            primaryColor: '#6366f1',
+            secondaryColor: '#4f46e5',
+            bgTheme: 'light',
+            fontFamily: "'Cairo', sans-serif",
+            animation: 'animate__fadeIn',
+            loaderStyle: 'spinner',
+            logoUrl: null,
+            texts: {
+                heroTitle: 'ابنِ مستقبلك الرقمي باحترافية كاملة',
+                heroSubtitle: 'منصة متكاملة تمنحك أدوات مذهلة لإطلاق موقعك الإلكتروني بتصميم فائق الجودة وسرعة فائقة.',
+                heroBtn: 'ابدأ مجاناً الآن'
+            }
+        };
+
+        // Switch Tabs in Sidebar
+        function switchTab(tabId) {
+            ['template', 'style', 'effects', 'content'].forEach(t => {
+                document.getElementById(`content-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).classList.remove('bg-indigo-600', 'text-white');
+                document.getElementById(`tab-${t}`).classList.add('hover:bg-slate-800', 'hover:text-white');
+            });
+            document.getElementById(`content-${tabId}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabId}`).classList.add('bg-indigo-600', 'text-white');
+            document.getElementById(`tab-${tabId}`).classList.remove('hover:bg-slate-800', 'hover:text-white');
+        }
+
+        // Set Primary Color
+        function setPrimaryColor(primary, secondary) {
+            state.primaryColor = primary;
+            state.secondaryColor = secondary;
+            document.documentElement.style.setProperty('--primary-color', primary);
+            document.documentElement.style.setProperty('--secondary-color', secondary);
+            
+            // Update button styles inside preview
+            const btnTop = document.getElementById('previewBtnTop');
+            if(btnTop) btnTop.style.backgroundColor = primary;
+            
+            const dynamicBtn = document.getElementById('dynamicHeroBtn');
+            if(dynamicBtn) dynamicBtn.style.backgroundColor = primary;
+        }
+
+        // Set Background Theme
+        function setBgTheme(theme) {
+            state.bgTheme = theme;
+            const container = document.getElementById('previewContainer');
+            if (theme === 'light') {
+                container.style.setProperty('--bg-color', '#f8fafc');
+                container.style.setProperty('--text-color', '#1e293b');
+            } else if (theme === 'dark') {
+                container.style.setProperty('--bg-color', '#090d16');
+                container.style.setProperty('--text-color', '#f8fafc');
+            } else if (theme === 'dim') {
+                container.style.setProperty('--bg-color', '#1e293b');
+                container.style.setProperty('--text-color', '#cbd5e1');
+            }
+        }
+        function updateBgTheme(val) { setBgTheme(val); }
+
+        // Set Font Family
+        function updateFont(font) {
+            state.fontFamily = font;
+            document.documentElement.style.setProperty('--font-family', font);
+            const container = document.getElementById('previewContainer');
+            container.style.fontFamily = font;
+        }
+
+        // Select Template
+        function selectTemplate(tpl) {
+            state.template = tpl;
+            renderTemplateContent();
+        }
+
+        // Update Animation
+        function updateAnimation(anim) {
+            state.animation = anim;
+            const container = document.getElementById('previewContainer');
+            container.className = `w-full max-w-5xl h-full max-h-[850px] preview-frame rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-800 transition-all duration-300 animate__animated ${anim}`;
+        }
+
+        // Update Text Content
+        function updateTextContent(key, val) {
+            state.texts[key] = val;
+            if(key === 'heroTitle') {
+                const el = document.getElementById('renderTitle');
+                if(el) el.innerText = val;
+            } else if(key === 'heroSubtitle') {
+                const el = document.getElementById('renderSubtitle');
+                if(el) el.innerText = val;
+            } else if(key === 'heroBtn') {
+                const el = document.getElementById('dynamicHeroBtn');
+                if(el) el.innerText = val;
+            }
+        }
+
+        // Handle Logo Upload
+        function handleLogoUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    state.logoUrl = e.target.result;
+                    const logoContainer = document.getElementById('logoContainer');
+                    logoContainer.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover rounded-xl" />`;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Set Loader Style & Preview
+        function setLoaderStyle(style) {
+            state.loaderStyle = style;
+            const icon = document.getElementById('activeLoaderIcon');
+            if (style === 'spinner') {
+                icon.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i>`;
+            } else {
+                icon.innerHTML = `<i class="fa-solid fa-circle-notch animate-pulse"></i>`;
+            }
+        }
+
+        function triggerLoaderPreview() {
+            const overlay = document.getElementById('loaderOverlay');
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+            }, 1200);
+        }
+
+        // Render Template Core Body
+        function renderTemplateContent() {
+            const bodyDiv = document.getElementById('templateBodyContent');
+            let contentHTML = '';
+
+            if (state.template === 'saas') {
+                contentHTML = `
+                    <div class="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-6 shadow-sm" style="background-color: var(--primary-color); color: #fff;">
+                        الجيل الجديد من الحلول الرقمية
+                    </div>
+                    <h2 id="renderTitle" class="text-4xl md:text-5xl font-black mb-6 leading-tight">${state.texts.heroTitle}</h2>
+                    <p id="renderSubtitle" class="text-base opacity-80 mb-8 max-w-2xl leading-relaxed">${state.texts.heroSubtitle}</p>
+                    <div class="flex items-center justify-center gap-4">
+                        <button id="dynamicHeroBtn" class="px-8 py-3 text-white font-bold rounded-xl shadow-lg transition" style="background-color: var(--primary-color);">${state.texts.heroBtn}</button>
+                        <button class="px-6 py-3 border border-current font-bold rounded-xl opacity-80 hover:opacity-100 transition">شاهد العرض التوضيحي</button>
+                    </div>
+                `;
+            } else if (state.template === 'agency') {
+                contentHTML = `
+                    <div class="border border-current/20 px-4 py-1 rounded-md text-xs font-mono uppercase tracking-widest mb-4 opacity-70">
+                        Creative Digital Studio
+                    </div>
+                    <h2 id="renderTitle" class="text-4xl md:text-6xl font-black mb-6 tracking-tight">${state.texts.heroTitle}</h2>
+                    <p id="renderSubtitle" class="text-base opacity-75 mb-8 max-w-xl leading-relaxed">${state.texts.heroSubtitle}</p>
+                    <button id="dynamicHeroBtn" class="px-8 py-4 text-white font-bold rounded-lg shadow-xl transition" style="background-color: var(--primary-color);">${state.texts.heroBtn}</button>
+                `;
+            } else if (state.template === 'portfolio') {
+                contentHTML = `
+                    <div class="w-24 h-24 rounded-full border-4 border-current p-1 mb-6 mx-auto overflow-hidden opacity-90">
+                        <div class="w-full h-full rounded-full bg-slate-500/20 flex items-center justify-center text-2xl font-bold">👤</div>
+                    </div>
+                    <h2 id="renderTitle" class="text-3xl md:text-4xl font-bold mb-4">${state.texts.heroTitle}</h2>
+                    <p id="renderSubtitle" class="text-sm opacity-80 mb-8 max-w-lg mx-auto leading-relaxed">${state.texts.heroSubtitle}</p>
+                    <button id="dynamicHeroBtn" class="px-6 py-3 text-white font-semibold rounded-full shadow transition" style="background-color: var(--primary-color);">${state.texts.heroBtn}</button>
+                `;
+            }
+            bodyDiv.innerHTML = contentHTML;
+        }
+
+        // Export Code Generator
+        function exportCode() {
+            const codeString = `<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>موقعي المُخصص</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"><\/script>
+    <link href="https://fonts.googleapis.com/css2?family=${state.fontFamily.split(',')[0].replace(/'/g, '')}&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: ${state.fontFamily}; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between">
+    <header class="p-6 flex justify-between items-center max-w-6xl mx-auto w-full">
+        <h1 class="font-bold text-xl" style="color: ${state.primaryColor};">هويتي</h1>
+        <button class="px-4 py-2 text-white rounded-lg" style="background-color: ${state.primaryColor};">دخول</button>
+    </header>
+    <main class="text-center px-6 py-20 max-w-3xl mx-auto">
+        <h2 class="text-4xl font-black mb-6">${state.texts.heroTitle}</h2>
+        <p class="opacity-80 mb-8">${state.texts.heroSubtitle}</p>
+        <button class="px-8 py-3 text-white font-bold rounded-xl shadow-lg" style="background-color: ${state.primaryColor};">${state.texts.heroBtn}</button>
+    </main>
+    <footer class="p-4 text-center text-xs opacity-60">تم الإنشاء بواسطة منصة بناء الويب الذكية</footer>
+</body>
+</html>`;
+
+            document.getElementById('exportedCodePre').innerText = codeString;
+            document.getElementById('exportModal').classList.remove('hidden');
+        }
+
+        function closeExportModal() {
+            document.getElementById('exportModal').classList.add('hidden');
+        }
+
+        function copyCode() {
+            const codeText = document.getElementById('exportedCodePre').innerText;
+            navigator.clipboard.writeText(codeText);
+            alert('تم نسخ الكود بنجاح!');
+        }
+
+        // Initial Render on Load
+        window.onload = function() {
+            renderTemplateContent();
+            setPrimaryColor('#6366f1', '#4f46e5');
+        };
+    </script>
+</body>
+</html>
