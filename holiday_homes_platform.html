@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة حجز بيوت العطلات</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#D9C5B2', // Warm Sand/Beige
+                        'secondary': '#F4EFEA', // Light Beige Background
+                        'accent': '#BFA286', // Darker Accent
+                        'text-dark': '#4A4036', // Dark Brown text
+                        'card-bg': '#FFFFFF',
+                    },
+                    fontFamily: {
+                        'cairo': ['Cairo', 'sans-serif'],
+                    },
+                    borderRadius: {
+                        '4xl': '2rem',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #F4EFEA; /* Lightest beige background */
+            color: #4A4036;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Mobile simulator container for desktop view */
+        .mobile-container {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background-color: #FAFAF8; /* Slightly off-white for app bg */
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+            overflow-x: hidden;
+        }
+
+        /* Hide scrollbar for horizontal scrolling elements */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Glassmorphism effect */
+        .glass-panel {
+            background: rgba(250, 250, 248, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(217, 197, 178, 0.2);
+        }
+
+        /* Page transition styles */
+        .page {
+            display: none;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            padding-bottom: 100px; /* Space for bottom nav */
+        }
+        .page.active {
+            display: block;
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Custom UI Elements based on image */
+        .rounded-super { border-radius: 2rem; }
+        .bg-card { background-color: #FFFFFF; }
+        .text-brown { color: #8C7861; } /* Muted brown from design */
+        
+        /* Specific shadows from design */
+        .soft-shadow { box-shadow: 0 10px 25px -5px rgba(217, 197, 178, 0.3); }
+        .inner-shadow { box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.04); }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+    <!-- Mobile Container -->
+    <div class="mobile-container">
+        
+        <!-- HEADER -->
+        <header class="sticky top-0 z-50 glass-panel px-6 py-5 flex justify-between items-center rounded-b-[2rem]">
+            <button class="w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-sm text-text-dark" aria-label="Menu" onclick="toggleMenu()">
+                <i class="fa-solid fa-bars-staggered"></i>
+            </button>
+            <h1 class="text-xl font-bold text-text-dark tracking-wide" id="header-title">استكشف</h1>
+            <div class="relative" onclick="navigate('page-host', 'حسابي', document.getElementById('nav-profile'))">
+                <img src="https://i.pravatar.cc/150?img=32" alt="Profile" class="w-10 h-10 rounded-full border-2 border-primary object-cover cursor-pointer shadow-sm">
+                <span class="absolute top-0 right-0 w-3 h-3 bg-[#E8C5A5] border-2 border-white rounded-full"></span>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="px-6 pt-4">
+
+            <!-- ================= HOME PAGE ================= -->
+            <section id="page-home" class="page active">
+                
+                <!-- Search & Filter -->
+                <div class="flex gap-3 mb-8">
+                    <div class="flex-1 bg-white rounded-2xl p-2 flex items-center shadow-sm border border-[#F4EFEA]">
+                        <div class="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-accent mr-1">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </div>
+                        <input type="text" placeholder="ابحث عن وجهتك..." class="w-full bg-transparent border-none focus:ring-0 px-3 text-sm outline-none text-text-dark placeholder-gray-400 font-medium">
+                    </div>
+                    <button class="w-14 bg-primary text-white rounded-2xl flex items-center justify-center shadow-md soft-shadow" aria-label="Filter" onclick="alert('فتح خيارات التصفية المتقدمة')">
+                        <i class="fa-solid fa-sliders"></i>
+                    </button>
+                </div>
+
+                <!-- Categories Horizontal Scroll -->
+                <div class="flex space-x-4 space-x-reverse overflow-x-auto no-scrollbar mb-8 pb-2">
+                    <button class="flex flex-col items-center min-w-[75px] gap-2">
+                        <div class="w-16 h-16 rounded-[1.2rem] bg-primary text-white flex items-center justify-center text-2xl soft-shadow transition-transform active:scale-95">
+                            <i class="fa-solid fa-house-chimney-window"></i>
+                        </div>
+                        <span class="text-xs font-bold text-text-dark">شاليهات</span>
+                    </button>
+                    <button class="flex flex-col items-center min-w-[75px] gap-2 opacity-60 hover:opacity-100 transition-opacity">
+                        <div class="w-16 h-16 rounded-[1.2rem] bg-white border border-[#F4EFEA] text-accent flex items-center justify-center text-2xl shadow-sm transition-transform active:scale-95">
+                            <i class="fa-solid fa-water-ladder"></i>
+                        </div>
+                        <span class="text-xs font-bold text-brown">بمسبح</span>
+                    </button>
+                    <button class="flex flex-col items-center min-w-[75px] gap-2 opacity-60 hover:opacity-100 transition-opacity">
+                        <div class="w-16 h-16 rounded-[1.2rem] bg-white border border-[#F4EFEA] text-accent flex items-center justify-center text-2xl shadow-sm transition-transform active:scale-95">
+                            <i class="fa-solid fa-campground"></i>
+                        </div>
+                        <span class="text-xs font-bold text-brown">مخيمات</span>
+                    </button>
+                    <button class="flex flex-col items-center min-w-[75px] gap-2 opacity-60 hover:opacity-100 transition-opacity">
+                        <div class="w-16 h-16 rounded-[1.2rem] bg-white border border-[#F4EFEA] text-accent flex items-center justify-center text-2xl shadow-sm transition-transform active:scale-95">
+                            <i class="fa-solid fa-building"></i>
+                        </div>
+                        <span class="text-xs font-bold text-brown">شقق</span>
+                    </button>
+                </div>
+
+                <!-- Section Title -->
+                <div class="flex justify-between items-end mb-5">
+                    <h2 class="text-xl font-bold text-text-dark">الأعلى تقييماً</h2>
+                    <button class="text-sm text-accent font-bold bg-secondary px-3 py-1 rounded-full">الكل</button>
+                </div>
+
+                <!-- Featured Horizontal Scroll -->
+                <div class="flex space-x-5 space-x-reverse overflow-x-auto no-scrollbar mb-8 pb-4 -mx-6 px-6">
+                    <!-- Card 1 -->
+                    <div class="min-w-[280px] max-w-[280px] bg-white rounded-[2rem] p-4 shadow-sm border border-[#F4EFEA] cursor-pointer relative" onclick="navigate('page-details', 'التفاصيل')">
+                        <div class="relative rounded-2xl overflow-hidden h-48 mb-4">
+                            <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Chalet" class="w-full h-full object-cover">
+                            <!-- Floating Price Badge -->
+                            <div class="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-xl font-bold text-text-dark shadow-sm text-sm">
+                                1,200 <span class="text-[10px] text-brown">ر.س/يوم</span>
+                            </div>
+                        </div>
+                        
+                        <button class="absolute top-7 left-7 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors shadow-sm" onclick="event.stopPropagation(); toggleHeart(this)">
+                            <i class="fa-regular fa-heart text-lg"></i>
+                        </button>
+
+                        <div>
+                            <div class="flex justify-between items-start mb-1">
+                                <h3 class="font-bold text-lg text-text-dark line-clamp-1">شاليه روز الفاخر</h3>
+                                <div class="flex items-center gap-1 text-sm font-bold bg-secondary px-2 py-1 rounded-lg">
+                                    <i class="fa-solid fa-star text-[#E8C5A5]"></i> 4.9
+                                </div>
+                            </div>
+                            <p class="text-brown text-sm mb-3 flex items-center">
+                                <i class="fa-solid fa-location-dot ml-1 text-accent/70"></i> الرياض، العمارية
+                            </p>
+                            <div class="flex gap-2">
+                                <span class="bg-[#FAFAF8] border border-[#F4EFEA] px-3 py-1.5 rounded-xl text-xs text-text-dark font-bold flex items-center gap-1"><i class="fa-solid fa-bed text-accent"></i> 3 غرف</span>
+                                <span class="bg-[#FAFAF8] border border-[#F4EFEA] px-3 py-1.5 rounded-xl text-xs text-text-dark font-bold flex items-center gap-1"><i class="fa-solid fa-water-ladder text-accent"></i> مسبح</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="min-w-[280px] max-w-[280px] bg-white rounded-[2rem] p-4 shadow-sm border border-[#F4EFEA] relative">
+                        <div class="relative rounded-2xl overflow-hidden h-48 mb-4">
+                            <img src="https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Villa" class="w-full h-full object-cover">
+                             <div class="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-xl font-bold text-text-dark shadow-sm text-sm">
+                                850 <span class="text-[10px] text-brown">ر.س/يوم</span>
+                            </div>
+                        </div>
+                        <button class="absolute top-7 left-7 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-red-500 shadow-sm" onclick="event.stopPropagation(); toggleHeart(this)">
+                            <i class="fa-solid fa-heart text-lg"></i>
+                        </button>
+                        <div>
+                            <div class="flex justify-between items-start mb-1">
+                                <h3 class="font-bold text-lg text-text-dark line-clamp-1">فيلا الرمال الساحرة</h3>
+                                <div class="flex items-center gap-1 text-sm font-bold bg-secondary px-2 py-1 rounded-lg">
+                                    <i class="fa-solid fa-star text-[#E8C5A5]"></i> 4.7
+                                </div>
+                            </div>
+                            <p class="text-brown text-sm mb-3 flex items-center">
+                                <i class="fa-solid fa-location-dot ml-1 text-accent/70"></i> جدة، أبحر
+                            </p>
+                            <div class="flex gap-2">
+                                <span class="bg-[#FAFAF8] border border-[#F4EFEA] px-3 py-1.5 rounded-xl text-xs text-text-dark font-bold flex items-center gap-1"><i class="fa-solid fa-umbrella-beach text-accent"></i> إطلالة</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Added Vertical List -->
+                <div class="flex justify-between items-end mb-4">
+                    <h2 class="text-xl font-bold text-text-dark">أضيف حديثاً</h2>
+                </div>
+                
+                <div class="flex flex-col gap-4">
+                    <!-- List Item 1 -->
+                    <div class="bg-white rounded-[1.5rem] p-3 flex gap-4 shadow-sm border border-[#F4EFEA] active:bg-gray-50 transition-colors" onclick="navigate('page-details', 'التفاصيل')">
+                        <div class="relative">
+                            <img src="https://images.unsplash.com/photo-1580587771525-78b9dba3b468?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80" class="w-24 h-24 rounded-2xl object-cover" alt="Thumb">
+                            <div class="absolute top-1 right-1 bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded-md flex items-center gap-1 text-[10px] font-bold">
+                                <i class="fa-solid fa-star text-[#E8C5A5]"></i> 4.5
+                            </div>
+                        </div>
+                        <div class="flex-1 flex flex-col justify-center py-1">
+                            <h3 class="font-bold text-md mb-1 text-text-dark">استراحة النسيم</h3>
+                            <p class="text-brown text-xs mb-2 flex items-center"><i class="fa-solid fa-location-dot ml-1 text-accent/50 text-[10px]"></i>القصيم، بريدة</p>
+                            <div class="flex justify-between items-center mt-auto">
+                                <div class="bg-secondary px-2 py-1 rounded-lg text-[10px] font-bold text-accent">
+                                    عوائل
+                                </div>
+                                <span class="font-bold text-sm text-text-dark">450 <span class="text-[10px] text-brown">ر.س</span></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- List Item 2 -->
+                    <div class="bg-white rounded-[1.5rem] p-3 flex gap-4 shadow-sm border border-[#F4EFEA] active:bg-gray-50 transition-colors" onclick="navigate('page-details', 'التفاصيل')">
+                        <div class="relative">
+                            <img src="https://images.unsplash.com/photo-1449844908441-8829872d2607?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80" class="w-24 h-24 rounded-2xl object-cover" alt="Thumb">
+                             <div class="absolute top-1 right-1 bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded-md flex items-center gap-1 text-[10px] font-bold">
+                                <span class="text-green-500">جديد</span>
+                            </div>
+                        </div>
+                        <div class="flex-1 flex flex-col justify-center py-1">
+                            <h3 class="font-bold text-md mb-1 text-text-dark">كوخ الغابة</h3>
+                            <p class="text-brown text-xs mb-2 flex items-center"><i class="fa-solid fa-location-dot ml-1 text-accent/50 text-[10px]"></i>الطائف، الشفا</p>
+                            <div class="flex justify-between items-center mt-auto">
+                                <div class="bg-secondary px-2 py-1 rounded-lg text-[10px] font-bold text-accent">
+                                    غرفة واحدة
+                                </div>
+                                <span class="font-bold text-sm text-text-dark">350 <span class="text-[10px] text-brown">ر.س</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= PROPERTY DETAILS PAGE ================= -->
+            <section id="page-details" class="page">
+                
+                <!-- Fixed Action Bar on Image -->
+                <div class="fixed top-6 left-1/2 transform -translate-x-1/2 w-full max-w-md px-6 flex justify-between items-center z-20">
+                    <button onclick="navigate('page-home', 'استكشف', document.getElementById('nav-home'))" class="w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center shadow-md text-text-dark">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                    <button class="w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center shadow-md text-text-dark" onclick="toggleHeart(this)">
+                        <i class="fa-regular fa-heart"></i>
+                    </button>
+                </div>
+
+                <!-- Full Width Image -->
+                <div class="relative -mx-6 -mt-4 mb-6 h-80">
+                    <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Main" class="w-full h-full object-cover rounded-b-[3rem]">
+                    <!-- Image Pagination Dots -->
+                    <div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex gap-2 bg-black/30 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                        <div class="w-2 h-2 rounded-full bg-white"></div>
+                        <div class="w-2 h-2 rounded-full bg-white/40"></div>
+                        <div class="w-2 h-2 rounded-full bg-white/40"></div>
+                        <div class="w-2 h-2 rounded-full bg-white/40"></div>
+                    </div>
+                </div>
+
+                <!-- Details Content -->
+                <div class="-mt-14 relative z-10">
+                    <div class="bg-white rounded-[2.5rem] p-6 shadow-sm border border-[#F4EFEA]">
+                        <div class="flex justify-between items-end mb-2">
+                            <h2 class="text-2xl font-bold text-text-dark">شاليه روز الفاخر</h2>
+                            <div class="flex items-center gap-1 text-sm font-bold bg-secondary px-2 py-1 rounded-lg text-text-dark">
+                                <i class="fa-solid fa-star text-[#E8C5A5]"></i> 4.9 <span class="text-brown text-xs font-normal">(120)</span>
+                            </div>
+                        </div>
+                        <p class="text-brown text-sm mb-6 flex items-center">
+                            <i class="fa-solid fa-location-dot ml-2 text-accent"></i> الرياض، العمارية (تبعد 20 كم)
+                        </p>
+                        
+                        <!-- Quick Stats Row (Design specific) -->
+                        <div class="flex justify-between items-center p-1 bg-secondary rounded-[1.5rem] mb-6">
+                            <div class="flex-1 bg-white rounded-2xl p-3 flex flex-col items-center justify-center shadow-sm">
+                                <div class="w-8 h-8 rounded-full bg-[#FAFAF8] flex items-center justify-center text-accent mb-1"><i class="fa-solid fa-bed text-sm"></i></div>
+                                <span class="block text-lg font-bold text-text-dark">3</span>
+                                <span class="text-[10px] text-brown font-bold">غرف</span>
+                            </div>
+                            <div class="flex-1 p-3 flex flex-col items-center justify-center">
+                                <div class="w-8 h-8 rounded-full bg-white/50 flex items-center justify-center text-accent mb-1"><i class="fa-solid fa-bath text-sm"></i></div>
+                                <span class="block text-lg font-bold text-text-dark">4</span>
+                                <span class="text-[10px] text-brown font-bold">دورات مياه</span>
+                            </div>
+                            <div class="flex-1 p-3 flex flex-col items-center justify-center">
+                                <div class="w-8 h-8 rounded-full bg-white/50 flex items-center justify-center text-accent mb-1"><i class="fa-solid fa-ruler-combined text-sm"></i></div>
+                                <span class="block text-lg font-bold text-text-dark">400</span>
+                                <span class="text-[10px] text-brown font-bold">متر مربع</span>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-6">
+                            <h3 class="font-bold text-lg mb-2 text-text-dark">عن المكان</h3>
+                            <p class="text-brown text-sm leading-relaxed font-medium">
+                                شاليه عصري بتصميم مودرن، يحتوي على صالة واسعة مطلة على المسبح الخارجي، جلسة خارجية مع شواية، مطبخ متكامل. مثالي للعوائل لقضاء وقت ممتع وهادئ.
+                                <button class="text-accent font-bold inline text-xs">قراءة المزيد...</button>
+                            </p>
+                        </div>
+
+                        <!-- Facilities (Grid based on design) -->
+                        <div class="mb-6">
+                            <h3 class="font-bold text-lg mb-4 text-text-dark">ماذا يقدم هذا المكان</h3>
+                            <div class="grid grid-cols-2 gap-y-4 gap-x-2">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-secondary text-accent flex items-center justify-center"><i class="fa-solid fa-water-ladder text-lg"></i></div>
+                                    <span class="text-sm font-bold text-text-dark">مسبح خارجي</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-secondary text-accent flex items-center justify-center"><i class="fa-solid fa-wifi text-lg"></i></div>
+                                    <span class="text-sm font-bold text-text-dark">إنترنت سريع</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-secondary text-accent flex items-center justify-center"><i class="fa-solid fa-fire-burner text-lg"></i></div>
+                                    <span class="text-sm font-bold text-text-dark">ركن شواء</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-secondary text-accent flex items-center justify-center"><i class="fa-solid fa-tv text-lg"></i></div>
+                                    <span class="text-sm font-bold text-text-dark">شاشة ذكية</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Host Info Mini Profile -->
+                        <div class="flex items-center gap-4 p-4 border border-[#F4EFEA] rounded-[1.5rem] bg-[#FAFAF8] mb-4">
+                            <img src="https://i.pravatar.cc/150?img=11" alt="Host" class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm">
+                            <div class="flex-1">
+                                <p class="text-[10px] text-brown font-bold">المضيف الموثوق</p>
+                                <p class="font-bold text-md text-text-dark">عبدالله محمد <i class="fa-solid fa-certificate text-accent text-xs ml-1"></i></p>
+                            </div>
+                            <button class="w-10 h-10 rounded-full border border-primary text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-colors" onclick="alert('فتح محادثة مع المضيف')">
+                                <i class="fa-regular fa-comment-dots"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Booking Action Bar -->
+                <div class="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-md bg-white p-5 rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(217,197,178,0.15)] z-40 flex justify-between items-center border-t border-[#F4EFEA]">
+                    <div class="flex flex-col">
+                        <span class="text-xs font-bold text-brown">الإجمالي لليلة</span>
+                        <div class="flex items-end gap-1">
+                            <span class="text-2xl font-black text-text-dark">1,200</span>
+                            <span class="text-sm font-bold text-brown mb-1">ر.س</span>
+                        </div>
+                    </div>
+                    <button class="bg-primary text-white px-10 py-4 rounded-[1.5rem] font-bold shadow-lg soft-shadow hover:opacity-90 transition-opacity active:scale-95" onclick="showBookingModal()">
+                        احجز الآن
+                    </button>
+                </div>
+            </section>
+
+            <!-- ================= FAVORITES PAGE ================= -->
+            <section id="page-favorites" class="page">
+                <h2 class="text-2xl font-bold text-text-dark mb-6">المفضلة</h2>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Fav Card 1 -->
+                    <div class="bg-white rounded-[1.5rem] p-2 shadow-sm border border-[#F4EFEA]" onclick="navigate('page-details', 'التفاصيل')">
+                        <div class="relative rounded-xl overflow-hidden h-32 mb-2">
+                            <img src="https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover">
+                            <button class="absolute top-2 left-2 w-7 h-7 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-red-500 shadow-sm" onclick="event.stopPropagation(); this.closest('.bg-white').remove();">
+                                <i class="fa-solid fa-heart text-sm"></i>
+                            </button>
+                        </div>
+                        <div class="px-1">
+                            <h3 class="font-bold text-sm text-text-dark line-clamp-1">فيلا الرمال</h3>
+                            <p class="text-accent font-bold text-xs mt-1">850 ر.س</p>
+                        </div>
+                    </div>
+                     <!-- Fav Card 2 -->
+                    <div class="bg-white rounded-[1.5rem] p-2 shadow-sm border border-[#F4EFEA]" onclick="navigate('page-details', 'التفاصيل')">
+                        <div class="relative rounded-xl overflow-hidden h-32 mb-2">
+                            <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover">
+                            <button class="absolute top-2 left-2 w-7 h-7 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-red-500 shadow-sm" onclick="event.stopPropagation(); this.closest('.bg-white').remove();">
+                                <i class="fa-solid fa-heart text-sm"></i>
+                            </button>
+                        </div>
+                        <div class="px-1">
+                            <h3 class="font-bold text-sm text-text-dark line-clamp-1">شاليه روز</h3>
+                            <p class="text-accent font-bold text-xs mt-1">1,200 ر.س</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+             <!-- ================= MESSAGES PAGE ================= -->
+             <section id="page-messages" class="page">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-text-dark">الرسائل</h2>
+                    <span class="bg-primary text-white text-xs font-bold px-2 py-1 rounded-lg">2 غير مقروءة</span>
+                </div>
+
+                <div class="flex flex-col gap-3">
+                    <!-- Message Item 1 (Unread) -->
+                    <div class="bg-white rounded-[1.5rem] p-4 flex gap-4 shadow-sm border border-primary/30 relative cursor-pointer" onclick="alert('فتح المحادثة')">
+                        <div class="absolute w-2 h-2 bg-primary rounded-full top-1/2 -translate-y-1/2 right-2"></div>
+                        <img src="https://i.pravatar.cc/150?img=11" class="w-14 h-14 rounded-full object-cover border-2 border-secondary" alt="User">
+                        <div class="flex-1 py-1 mr-2">
+                            <div class="flex justify-between items-center mb-1">
+                                <h3 class="font-bold text-md text-text-dark">عبدالله محمد (مضيف)</h3>
+                                <span class="text-[10px] text-brown font-bold">منذ ساعتين</span>
+                            </div>
+                            <p class="text-sm text-text-dark font-bold line-clamp-1">مرحباً بك، تم تأكيد حجزك في شاليه روز. هل تحتاج أي مساعدة إضافية؟</p>
+                        </div>
+                    </div>
+
+                    <!-- Message Item 2 -->
+                    <div class="bg-[#FAFAF8] rounded-[1.5rem] p-4 flex gap-4 border border-[#F4EFEA] cursor-pointer" onclick="alert('فتح المحادثة')">
+                        <img src="https://i.pravatar.cc/150?img=47" class="w-14 h-14 rounded-full object-cover" alt="User">
+                        <div class="flex-1 py-1">
+                            <div class="flex justify-between items-center mb-1">
+                                <h3 class="font-bold text-md text-text-dark">خدمة العملاء</h3>
+                                <span class="text-[10px] text-brown">أمس</span>
+                            </div>
+                            <p class="text-sm text-brown line-clamp-1">نأمل أن تكون إقامتك السابقة ممتعة، لا تنسى التقييم.</p>
+                        </div>
+                    </div>
+                </div>
+             </section>
+
+            <!-- ================= HOST DASHBOARD PAGE ================= -->
+            <section id="page-host" class="page">
+                
+                <!-- Profile Header Area -->
+                <div class="bg-white rounded-[2rem] p-5 shadow-sm border border-[#F4EFEA] mb-6 flex items-center gap-4 relative overflow-hidden">
+                    <!-- Decoration -->
+                    <div class="absolute -left-10 -bottom-10 w-32 h-32 bg-secondary rounded-full opacity-50 pointer-events-none"></div>
+                    
+                    <img src="https://i.pravatar.cc/150?img=32" alt="Profile" class="w-16 h-16 rounded-full border-2 border-primary object-cover z-10">
+                    <div class="z-10">
+                        <h2 class="text-xl font-bold text-text-dark mb-1">أحمد عبدالله</h2>
+                        <span class="bg-secondary text-accent text-xs font-bold px-2 py-1 rounded-lg">مضيف ذهبي</span>
+                    </div>
+                    <button class="mr-auto w-10 h-10 bg-[#FAFAF8] rounded-full flex items-center justify-center text-brown z-10">
+                        <i class="fa-solid fa-gear"></i>
+                    </button>
+                </div>
+
+                <!-- Earnings Widget -->
+                <div class="bg-primary p-5 rounded-[2rem] mb-6 text-white soft-shadow relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                    
+                    <p class="text-xs font-medium text-white/80 mb-1">أرباح هذا الشهر</p>
+                    <div class="flex justify-between items-end mb-4">
+                        <h3 class="text-3xl font-black">14,500 <span class="text-sm font-medium">ر.س</span></h3>
+                        <div class="bg-white/20 px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1 backdrop-blur-sm">
+                            <i class="fa-solid fa-arrow-trend-up"></i> +12%
+                        </div>
+                    </div>
+                    <button class="w-full bg-white text-primary py-3 rounded-xl font-bold text-sm shadow-sm" onclick="alert('جاري فتح تفاصيل المحفظة والتحويلات...')">
+                        سحب الرصيد
+                    </button>
+                </div>
+
+                <!-- Action Grid -->
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div class="bg-white p-4 rounded-[1.5rem] shadow-sm border border-[#F4EFEA] flex flex-col items-center justify-center gap-2 cursor-pointer active:scale-95 transition-transform" onclick="alert('إدارة الحجوزات')">
+                        <div class="w-12 h-12 rounded-full bg-secondary text-accent flex items-center justify-center text-xl"><i class="fa-regular fa-calendar-check"></i></div>
+                        <p class="font-bold text-text-dark text-sm">الحجوزات (8)</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-[1.5rem] shadow-sm border border-[#F4EFEA] flex flex-col items-center justify-center gap-2 cursor-pointer active:scale-95 transition-transform" onclick="alert('إدارة العقارات')">
+                        <div class="w-12 h-12 rounded-full bg-secondary text-accent flex items-center justify-center text-xl"><i class="fa-solid fa-house"></i></div>
+                        <p class="font-bold text-text-dark text-sm">عقاراتي (2)</p>
+                    </div>
+                </div>
+
+                <!-- Subscription Section Design -->
+                <div class="flex justify-between items-end mb-4">
+                    <h2 class="text-lg font-bold text-text-dark">باقة الاشتراك الخاصة بك</h2>
+                </div>
+                
+                <div class="bg-white rounded-[2rem] p-5 shadow-sm border-2 border-primary relative mb-6">
+                    <div class="absolute top-0 right-6 bg-primary text-white text-[10px] font-bold px-3 py-1.5 rounded-b-lg shadow-sm">الباقة الحالية</div>
+                    
+                    <div class="flex items-center gap-3 mb-5 pt-3">
+                        <div class="w-12 h-12 rounded-2xl bg-[#FAFAF8] border border-[#F4EFEA] text-accent flex items-center justify-center text-xl"><i class="fa-solid fa-crown"></i></div>
+                        <div>
+                            <h3 class="font-bold text-md text-text-dark">الباقة المتقدمة</h3>
+                            <p class="text-accent font-bold text-sm">399 ر.س <span class="text-[10px] text-brown font-normal">/ شهرياً</span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-[#FAFAF8] rounded-xl p-3 mb-5 border border-[#F4EFEA]">
+                        <div class="flex justify-between text-xs mb-2 font-bold">
+                            <span class="text-brown">أيام التجديد المتبقية</span>
+                            <span class="text-text-dark">12 يوم</span>
+                        </div>
+                        <div class="w-full bg-[#E5D5C5] rounded-full h-2">
+                            <div class="bg-primary h-2 rounded-full shadow-inner" style="width: 60%"></div>
+                        </div>
+                    </div>
+                    
+                    <button class="w-full border-2 border-text-dark text-text-dark py-3 rounded-xl font-bold text-sm active:bg-text-dark active:text-white transition-colors" onclick="alert('فتح خيارات ترقية الباقة لزيادة عدد العقارات المسموحة')">
+                        ترقية الباقة
+                    </button>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- ================= BOTTOM NAVIGATION BAR ================= -->
+        <nav class="fixed bottom-5 left-1/2 transform -translate-x-1/2 w-[calc(100%-2.5rem)] max-w-[440px] bg-white/95 glass-panel rounded-[2rem] shadow-[0_15px_40px_rgba(217,197,178,0.3)] p-2 flex justify-between items-center z-50 border border-[#F4EFEA]">
+            
+            <button id="nav-home" onclick="navigate('page-home', 'استكشف', this)" class="nav-btn active flex-1 flex flex-col items-center py-2.5 rounded-[1.5rem] transition-all duration-300 bg-primary text-white shadow-md">
+                <i class="fa-solid fa-compass text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">استكشف</span>
+            </button>
+            
+            <button id="nav-fav" onclick="navigate('page-favorites', 'المفضلة', this)" class="nav-btn flex-1 flex flex-col items-center py-2.5 rounded-[1.5rem] transition-all duration-300 text-brown hover:bg-secondary/50">
+                <i class="fa-regular fa-heart text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">المفضلة</span>
+            </button>
+            
+            <button id="nav-msg" onclick="navigate('page-messages', 'الرسائل', this)" class="nav-btn flex-1 flex flex-col items-center py-2.5 rounded-[1.5rem] transition-all duration-300 text-brown hover:bg-secondary/50 relative">
+                <i class="fa-regular fa-message text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">الرسائل</span>
+                <span class="absolute top-2 right-[25%] w-2.5 h-2.5 bg-accent border-2 border-white rounded-full"></span>
+            </button>
+            
+            <button id="nav-profile" onclick="navigate('page-host', 'حسابي', this)" class="nav-btn flex-1 flex flex-col items-center py-2.5 rounded-[1.5rem] transition-all duration-300 text-brown hover:bg-secondary/50">
+                <i class="fa-regular fa-user text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">حسابي</span>
+            </button>
+
+        </nav>
+
+        <!-- ================= BOOKING MODAL ================= -->
+        <div id="booking-modal" class="fixed inset-0 bg-text-dark/40 backdrop-blur-sm z-[60] flex items-end justify-center hidden opacity-0 transition-opacity duration-300 absolute" style="max-width: 480px; margin: 0 auto; left: 0; right: 0;">
+            <div class="bg-white w-full rounded-t-[2.5rem] p-6 transform translate-y-full transition-transform duration-400 ease-out" id="booking-content">
+                <div class="w-12 h-1.5 bg-[#F4EFEA] rounded-full mx-auto mb-6"></div>
+                <h3 class="text-xl font-bold text-center mb-6 text-text-dark">تأكيد الحجز المبدئي</h3>
+                
+                <div class="bg-[#FAFAF8] border border-[#F4EFEA] rounded-[1.5rem] p-5 mb-6">
+                    <div class="flex justify-between mb-3 items-center">
+                        <span class="text-sm font-bold text-brown">تسجيل الدخول</span>
+                        <span class="font-bold text-sm text-text-dark bg-white px-3 py-1 rounded-lg shadow-sm">12 أكتوبر</span>
+                    </div>
+                    <div class="flex justify-between mb-3 items-center">
+                        <span class="text-sm font-bold text-brown">المغادرة</span>
+                        <span class="font-bold text-sm text-text-dark bg-white px-3 py-1 rounded-lg shadow-sm">14 أكتوبر</span>
+                    </div>
+                    <div class="w-full h-px bg-[#F4EFEA] my-4"></div>
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-text-dark">الإجمالي (ليلتين)</span>
+                        <span class="font-black text-xl text-primary">2,400 ر.س</span>
+                    </div>
+                </div>
+                
+                <div class="flex gap-2 mb-6 bg-secondary/50 p-3 rounded-xl">
+                    <i class="fa-solid fa-circle-info text-accent mt-0.5"></i>
+                    <p class="text-xs text-brown font-medium leading-relaxed">بما أن المنصة لا تأخذ عمولة، سيتم إرسال طلبك للمضيف ليقوم بالتواصل معك مباشرة لإتمام عملية الدفع وتأكيد الحجز نهائياً.</p>
+                </div>
+
+                <div class="flex gap-3">
+                    <button onclick="closeBookingModal()" class="flex-1 bg-[#FAFAF8] text-text-dark py-4 rounded-[1.5rem] font-bold text-md border border-[#F4EFEA]">
+                        إلغاء
+                    </button>
+                    <button onclick="confirmBooking()" class="flex-[2] bg-text-dark text-white py-4 rounded-[1.5rem] font-bold text-md shadow-lg soft-shadow">
+                        إرسال الطلب للمضيف
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div> <!-- End Mobile Container -->
+
+    <script>
+        // --- Navigation Logic ---
+        function navigate(pageId, title, btnElement = null) {
+            // Update Header Title
+            document.getElementById('header-title').innerText = title;
+
+            // Handle Page Transitions
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => {
+                if(page.classList.contains('active')){
+                    page.style.opacity = '0';
+                    page.style.transform = 'translateX(-20px)';
+                    setTimeout(() => {
+                        page.classList.remove('active');
+                    }, 300); // Wait for transition
+                }
+            });
+
+            setTimeout(() => {
+                const targetPage = document.getElementById(pageId);
+                targetPage.classList.add('active');
+                // Force reflow
+                void targetPage.offsetWidth; 
+                targetPage.style.opacity = '1';
+                targetPage.style.transform = 'translateX(0)';
+            }, 300);
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Handle Bottom Nav Styling
+            if(btnElement && btnElement.classList.contains('nav-btn')) {
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    // Reset to default unselected state
+                    btn.classList.remove('bg-primary', 'text-white', 'shadow-md');
+                    btn.classList.add('text-brown', 'hover:bg-secondary/50');
+                });
+                
+                // Set Active state
+                btnElement.classList.remove('text-brown', 'hover:bg-secondary/50');
+                btnElement.classList.add('bg-primary', 'text-white', 'shadow-md');
+            }
+            
+            // Toggle Header based on page (hide on details)
+            const header = document.querySelector('header');
+            if(pageId === 'page-details') {
+                header.style.transform = 'translateY(-100%)';
+                header.style.transition = 'transform 0.3s ease';
+            } else {
+                header.style.transform = 'translateY(0)';
+            }
+        }
+
+        // --- Interactive Functions ---
+        function toggleHeart(btn) {
+            const icon = btn.querySelector('i');
+            if (icon.classList.contains('fa-regular')) {
+                icon.classList.replace('fa-regular', 'fa-solid');
+                icon.classList.add('text-red-500');
+                if(!btn.classList.contains('text-red-500')) btn.classList.add('text-red-500'); // for details page btn
+                showToast('تمت الإضافة للمفضلة');
+            } else {
+                icon.classList.replace('fa-solid', 'fa-regular');
+                icon.classList.remove('text-red-500');
+                if(btn.classList.contains('text-red-500')) btn.classList.remove('text-red-500');
+                showToast('تمت الإزالة من المفضلة');
+            }
+        }
+
+        function toggleMenu() {
+            alert('فتح القائمة الجانبية (الإعدادات، عن التطبيق، الشروط والأحكام)');
+        }
+
+        // --- Modal Logic ---
+        const modal = document.getElementById('booking-modal');
+        const modalContent = document.getElementById('booking-content');
+
+        function showBookingModal() {
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalContent.classList.remove('translate-y-full');
+            }, 10);
+        }
+
+        function closeBookingModal() {
+            modal.classList.add('opacity-0');
+            modalContent.classList.add('translate-y-full');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 400);
+        }
+
+        function confirmBooking() {
+            closeBookingModal();
+            setTimeout(() => {
+                showToast('تم إرسال طلب الحجز بنجاح للمضيف!');
+                // Navigate back to home after successful booking
+                setTimeout(() => {
+                    navigate('page-home', 'استكشف', document.getElementById('nav-home'));
+                }, 1500);
+            }, 400);
+        }
+
+        // --- Simple Toast Notification System ---
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-text-dark text-white px-6 py-3 rounded-full text-sm font-bold shadow-lg z-[100] transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-none whitespace-nowrap';
+            toast.innerText = message;
+            
+            // Append to mobile container to keep it within the 480px bounds
+            document.querySelector('.mobile-container').appendChild(toast);
+            
+            // Animate in
+            setTimeout(() => {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translate(-50%, 0)';
+            }, 10);
+            
+            // Remove after 3s
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translate(-50%, -20px)';
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
