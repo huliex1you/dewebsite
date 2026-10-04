@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المهندس الرقمي - التوليد بالمرفقات</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            900: '#4c1d95',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
+        
+        /* Neon Glow Effect */
+        .glow-button {
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
+            transition: all 0.3s ease;
+        }
+        .glow-button:hover {
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.8);
+            transform: translateY(-2px);
+        }
+
+        /* Scanner Animation */
+        .scanning-line {
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(to right, transparent, #8b5cf6, transparent);
+            position: absolute;
+            top: 0;
+            left: 0;
+            animation: scan 2s linear infinite;
+            opacity: 0;
+        }
+        @keyframes scan {
+            0% { top: 0; opacity: 1; }
+            90% { top: 100%; opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        /* Floating Animation */
+        .float-anim {
+            animation: float 4s ease-in-out infinite;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 h-screen flex flex-col overflow-hidden">
+
+    <!-- Header -->
+    <header class="bg-slate-950 border-b border-slate-800 px-6 py-4 flex items-center justify-between shrink-0 z-20">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-purple-700 flex items-center justify-center shadow-lg">
+                <i class="fa-solid fa-wand-magic-sparkles text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-black text-lg text-white tracking-wide">المُهندس الذكي</h1>
+                <p class="text-[10px] text-brand-500 font-bold uppercase tracking-widest">AI Layout Generator</p>
+            </div>
+        </div>
+        <button onclick="exportGeneratedCode()" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-sm font-semibold transition flex items-center gap-2">
+            <i class="fa-solid fa-code"></i> تصدير الكود
+        </button>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="flex-1 flex overflow-hidden">
+        
+        <!-- Asset Gathering Sidebar (Right) -->
+        <aside class="w-[400px] bg-slate-900 border-l border-slate-800 flex flex-col z-10 shrink-0">
+            <div class="p-5 flex-1 overflow-y-auto space-y-6">
+                
+                <!-- Intro -->
+                <div>
+                    <h2 class="text-xl font-bold text-white mb-2">تجميع المرفقات</h2>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        قم بإضافة النصوص والصور هنا. سيقوم النظام الذكي بتحليل مرفقاتك وتصميم قالب ويب يعرضها بأفضل شكل ممكن.
+                    </p>
+                </div>
+
+                <!-- Text Context -->
+                <div class="space-y-3 bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+                    <h3 class="text-sm font-bold text-slate-200 border-b border-slate-700 pb-2"><i class="fa-solid fa-align-right text-brand-500 ml-1"></i> المحتوى النصي</h3>
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-1">اسم المشروع / العنوان الرئيسي</label>
+                        <input type="text" id="projName" value="مشروعي الإبداعي" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-1">وصف قصير</label>
+                        <textarea id="projDesc" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500 transition">نحن نقدم حلولاً مبتكرة وتصاميم عصرية تناسب تطلعاتك وتلبي احتياجات أعمالك الرقمية.</textarea>
+                    </div>
+                </div>
+
+                <!-- Image Uploader -->
+                <div class="space-y-3 bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+                    <h3 class="text-sm font-bold text-slate-200 border-b border-slate-700 pb-2 flex justify-between items-center">
+                        <span><i class="fa-solid fa-images text-brand-500 ml-1"></i> الصور والمرفقات</span>
+                        <span id="imgCountBadge" class="bg-brand-600 text-white text-[10px] px-2 py-0.5 rounded-full">0 صور</span>
+                    </h3>
+                    
+                    <label class="flex flex-col items-center justify-center h-32 bg-slate-900/50 border-2 border-dashed border-slate-600 rounded-xl cursor-pointer hover:bg-slate-800 hover:border-brand-500 transition group">
+                        <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-500 group-hover:text-brand-500 transition mb-2"></i>
+                        <span class="text-xs font-semibold text-slate-300">اضغط لرفع الصور</span>
+                        <span class="text-[10px] text-slate-500 mt-1">يُدعم JPG, PNG</span>
+                        <input type="file" id="fileInput" multiple accept="image/*" class="hidden" onchange="handleFileUpload(event)">
+                    </label>
+
+                    <!-- Staging Area (Thumbnails) -->
+                    <div id="stagingArea" class="grid grid-cols-4 gap-2 pt-2 empty:hidden">
+                        <!-- Thumbnails will be injected here via JS -->
+                    </div>
+                </div>
+
+                <!-- Color Mood -->
+                <div class="space-y-3 bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+                    <h3 class="text-sm font-bold text-slate-200 border-b border-slate-700 pb-2"><i class="fa-solid fa-palette text-brand-500 ml-1"></i> الطابع اللوني</h3>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="setMood('modern')" class="mood-btn border-2 border-brand-500 bg-slate-900 rounded-lg p-2 text-center transition">
+                            <div class="w-full h-4 bg-gradient-to-r from-violet-600 to-indigo-600 rounded mb-1"></div>
+                            <span class="text-[10px] text-white">عصري ومضيء</span>
+                        </button>
+                        <button onclick="setMood('dark')" class="mood-btn border-2 border-slate-700 bg-slate-900 rounded-lg p-2 text-center transition">
+                            <div class="w-full h-4 bg-gradient-to-r from-slate-800 to-black rounded mb-1"></div>
+                            <span class="text-[10px] text-slate-400">داكن فاخر</span>
+                        </button>
+                        <button onclick="setMood('vibrant')" class="mood-btn border-2 border-slate-700 bg-slate-900 rounded-lg p-2 text-center transition">
+                            <div class="w-full h-4 bg-gradient-to-r from-rose-500 to-orange-500 rounded mb-1"></div>
+                            <span class="text-[10px] text-slate-400">حيوي ودافئ</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Generate Trigger -->
+            <div class="p-5 bg-slate-950 border-t border-slate-800 shrink-0">
+                <button onclick="startAiGeneration()" class="w-full py-4 bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-500 hover:to-purple-500 text-white rounded-xl text-base font-bold glow-button flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-microchip"></i> توليد التصميم الذكي
+                </button>
+            </div>
+        </aside>
+
+        <!-- Preview & Output Canvas (Left) -->
+        <main class="flex-1 relative bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-slate-950/95 p-8 flex items-center justify-center overflow-hidden">
+            
+            <!-- Default Empty State -->
+            <div id="emptyState" class="text-center float-anim flex flex-col items-center justify-center">
+                <div class="w-24 h-24 rounded-full bg-slate-800/50 border border-slate-700 flex items-center justify-center mb-6">
+                    <i class="fa-solid fa-layer-group text-4xl text-slate-500"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-300 mb-2">لوحة التصميم فارغة</h2>
+                <p class="text-slate-500 text-sm max-w-sm">قم برفع مرفقاتك من القائمة الجانبية ثم اضغط على زر التوليد ليقوم الذكاء ببناء تخطيط موقعك.</p>
+            </div>
+
+            <!-- The Generated Website Container -->
+            <div id="generatedCanvas" class="w-full h-full max-w-[1200px] bg-white rounded-2xl shadow-2xl overflow-hidden relative hidden border border-slate-200">
+                <div class="w-full h-8 bg-slate-100 border-b border-slate-200 flex items-center px-4 gap-2">
+                    <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                    <div class="w-3 h-3 rounded-full bg-amber-400"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-400"></div>
+                    <div class="ml-4 text-[10px] text-slate-400 font-mono">Live Preview</div>
+                </div>
+                
+                <!-- Injected HTML goes here -->
+                <div id="canvasBody" class="w-full h-[calc(100%-2rem)] overflow-y-auto bg-white transition-colors duration-500">
+                    <!-- HTML Generated by logic -->
+                </div>
+            </div>
+
+            <!-- AI Generating Overlay -->
+            <div id="aiLoaderOverlay" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex flex-col items-center justify-center hidden">
+                <div class="relative w-full max-w-lg h-64 border-2 border-brand-500/30 rounded-xl overflow-hidden bg-slate-900/50 p-6 flex flex-col items-center justify-center">
+                    <div class="scanning-line"></div>
+                    <i class="fa-solid fa-brain text-6xl text-brand-500 animate-pulse mb-6 float-anim"></i>
+                    <h3 class="text-xl font-bold text-white mb-2 tracking-wide" id="loaderText">جاري تحليل المرفقات...</h3>
+                    <p class="text-brand-300 text-xs font-mono" id="loaderSubtext">Analyzing 0 images and layout structure</p>
+                    
+                    <!-- Progress bar -->
+                    <div class="w-64 h-1.5 bg-slate-800 rounded-full mt-6 overflow-hidden">
+                        <div id="loaderProgress" class="h-full bg-gradient-to-r from-brand-400 to-purple-500 w-0 transition-all duration-300"></div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="exportModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-slate-900 border border-slate-700 w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col h-[80vh]">
+            <div class="flex items-center justify-between border-b border-slate-800 px-6 py-4 shrink-0">
+                <h3 class="font-bold text-white"><i class="fa-solid fa-code text-brand-500 ml-2"></i> الكود المصدري للتصميم (HTML/Tailwind)</h3>
+                <button onclick="closeExport()" class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="flex-1 p-4 overflow-hidden">
+                <textarea id="codeOutputText" class="w-full h-full bg-slate-950 text-brand-200 p-4 rounded-xl font-mono text-sm border border-slate-800 focus:outline-none resize-none" dir="ltr" readonly></textarea>
+            </div>
+            <div class="p-4 border-t border-slate-800 flex justify-end gap-3 shrink-0">
+                <button onclick="copyGeneratedCode()" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-bold transition flex items-center gap-2">
+                    <i class="fa-solid fa-copy"></i> نسخ الكود
+                </button>
+                <button onclick="closeExport()" class="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Logic (The "AI" Engine) -->
+    <script>
+        // App State
+        let uploadedAssets = [];
+        let currentMood = 'modern';
+        let generatedHTMLString = ''; // Holds the final code
+
+        // Colors mapping based on mood
+        const moodColors = {
+            modern: { bg: 'bg-white', text: 'text-slate-900', secondaryBg: 'bg-slate-50', accent: 'bg-violet-600', textAccent: 'text-violet-600' },
+            dark: { bg: 'bg-slate-900', text: 'text-white', secondaryBg: 'bg-slate-800', accent: 'bg-emerald-500', textAccent: 'text-emerald-500' },
+            vibrant: { bg: 'bg-orange-50', text: 'text-orange-950', secondaryBg: 'bg-white', accent: 'bg-rose-500', textAccent: 'text-rose-500' }
+        };
+
+        // UI Handlers
+        function setMood(moodId) {
+            currentMood = moodId;
+            document.querySelectorAll('.mood-btn').forEach(btn => {
+                btn.classList.remove('border-brand-500');
+                btn.classList.add('border-slate-700');
+                btn.querySelector('span').classList.replace('text-white', 'text-slate-400');
+            });
+            const activeBtn = event.currentTarget;
+            activeBtn.classList.remove('border-slate-700');
+            activeBtn.classList.add('border-brand-500');
+            activeBtn.querySelector('span').classList.replace('text-slate-400', 'text-white');
+        }
+
+        function handleFileUpload(event) {
+            const files = event.target.files;
+            if (files && files.length > 0) {
+                Array.from(files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        uploadedAssets.push(e.target.result);
+                        renderStagingArea();
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+        }
+
+        function removeAsset(index) {
+            uploadedAssets.splice(index, 1);
+            renderStagingArea();
+        }
+
+        function renderStagingArea() {
+            const container = document.getElementById('stagingArea');
+            const badge = document.getElementById('imgCountBadge');
+            
+            badge.innerText = `${uploadedAssets.length} صور`;
+            container.innerHTML = '';
+            
+            uploadedAssets.forEach((src, idx) => {
+                container.innerHTML += `
+                    <div class="relative group aspect-square rounded-lg overflow-hidden border border-slate-700">
+                        <img src="${src}" class="w-full h-full object-cover" />
+                        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                            <button onclick="removeAsset(${idx})" class="text-white hover:text-red-400"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // --- THE "AI" GENERATION ENGINE ---
+        
+        function startAiGeneration() {
+            const name = document.getElementById('projName').value || 'مشروع جديد';
+            const desc = document.getElementById('projDesc').value || 'وصف المشروع';
+            
+            // Show Loader
+            const loader = document.getElementById('aiLoaderOverlay');
+            const progBar = document.getElementById('loaderProgress');
+            const loaderText = document.getElementById('loaderText');
+            const loaderSubtext = document.getElementById('loaderSubtext');
+            
+            loader.classList.remove('hidden');
+            loaderSubtext.innerText = `Analyzing ${uploadedAssets.length} attachments...`;
+            
+            // Fake progression
+            setTimeout(() => { progBar.style.width = '30%'; loaderText.innerText = 'تصميم الهيكل...'; }, 500);
+            setTimeout(() => { progBar.style.width = '60%'; loaderText.innerText = 'تطبيق الطابع اللوني...'; }, 1500);
+            setTimeout(() => { progBar.style.width = '90%'; loaderText.innerText = 'تنسيق الصور...'; }, 2500);
+            
+            setTimeout(() => {
+                progBar.style.width = '100%';
+                
+                // GENERATE BASED ON ATTACHMENT COUNT
+                let finalHTML = '';
+                const colors = moodColors[currentMood];
+                const count = uploadedAssets.length;
+
+                if(count === 0) {
+                    finalHTML = generateTextOnlyLayout(name, desc, colors);
+                } else if (count === 1) {
+                    finalHTML = generateHeroSplitLayout(name, desc, colors, uploadedAssets[0]);
+                } else if (count === 2 || count === 3) {
+                    finalHTML = generateFeaturesLayout(name, desc, colors, uploadedAssets);
+                } else {
+                    finalHTML = generateGalleryLayout(name, desc, colors, uploadedAssets);
+                }
+
+                // Wrap in full document for export
+                generatedHTMLString = buildFullDocument(finalHTML, colors);
+
+                // Inject to preview
+                document.getElementById('canvasBody').className = `w-full h-[calc(100%-2rem)] overflow-y-auto transition-colors duration-500 ${colors.bg}`;
+                document.getElementById('canvasBody').innerHTML = finalHTML;
+
+                // Hide state, show canvas
+                document.getElementById('emptyState').classList.add('hidden');
+                document.getElementById('generatedCanvas').classList.remove('hidden');
+                loader.classList.add('hidden');
+                progBar.style.width = '0%'; // reset
+                
+            }, 3000);
+        }
+
+        // Layout Generators
+        function buildNav(name, colors) {
+            return `
+                <nav class="flex justify-between items-center px-8 py-6 max-w-6xl mx-auto">
+                    <h1 class="text-2xl font-black ${colors.textAccent}">${name}</h1>
+                    <div class="space-x-6 space-x-reverse font-semibold ${colors.text} opacity-80 hidden md:flex">
+                        <a href="#" class="hover:${colors.textAccent} transition">الرئيسية</a>
+                        <a href="#" class="hover:${colors.textAccent} transition">عن المنصة</a>
+                        <a href="#" class="hover:${colors.textAccent} transition">تواصل معنا</a>
+                    </div>
+                </nav>
+            `;
+        }
+
+        function generateTextOnlyLayout(name, desc, colors) {
+            return `
+                ${buildNav(name, colors)}
+                <section class="flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
+                    <div class="inline-block px-4 py-1.5 rounded-full ${colors.secondaryBg} ${colors.textAccent} text-sm font-bold mb-6 border border-current/20">
+                        تصميم نظيف وبسيط
+                    </div>
+                    <h1 class="text-5xl md:text-7xl font-black ${colors.text} mb-6 leading-tight max-w-4xl">${name}</h1>
+                    <p class="text-xl ${colors.text} opacity-70 max-w-2xl leading-relaxed mb-10">${desc}</p>
+                    <button class="px-8 py-4 ${colors.accent} text-white font-bold rounded-xl shadow-xl hover:scale-105 transition-transform duration-300">
+                        اكتشف المزيد
+                    </button>
+                </section>
+            `;
+        }
+
+        function generateHeroSplitLayout(name, desc, colors, imgUrl) {
+            return `
+                ${buildNav(name, colors)}
+                <section class="max-w-7xl mx-auto px-8 py-12 flex flex-col md:flex-row items-center gap-12 min-h-[70vh]">
+                    <div class="flex-1 text-right">
+                        <h1 class="text-5xl md:text-6xl font-black ${colors.text} mb-6 leading-tight">${name}</h1>
+                        <p class="text-lg ${colors.text} opacity-70 leading-relaxed mb-8">${desc}</p>
+                        <div class="flex gap-4">
+                            <button class="px-8 py-3 ${colors.accent} text-white font-bold rounded-lg shadow-lg hover:-translate-y-1 transition">ابدأ الآن</button>
+                            <button class="px-8 py-3 border-2 border-current ${colors.text} font-bold rounded-lg hover:bg-slate-500/10 transition">معلومات عنا</button>
+                        </div>
+                    </div>
+                    <div class="flex-1 relative w-full aspect-square md:aspect-auto md:h-[500px]">
+                        <div class="absolute inset-4 ${colors.accent} rounded-3xl opacity-20 blur-2xl"></div>
+                        <img src="${imgUrl}" alt="Hero Image" class="relative w-full h-full object-cover rounded-3xl shadow-2xl z-10 border-4 border-white/10" />
+                    </div>
+                </section>
+            `;
+        }
+
+        function generateFeaturesLayout(name, desc, colors, images) {
+            let cards = images.map((img, i) => `
+                <div class="${colors.secondaryBg} rounded-2xl overflow-hidden shadow-lg border border-slate-500/10 hover:-translate-y-2 transition-transform duration-300">
+                    <img src="${img}" class="w-full h-48 object-cover" />
+                    <div class="p-6 text-right">
+                        <h3 class="text-xl font-bold ${colors.text} mb-2">الخدمة / الميزة ${i+1}</h3>
+                        <p class="${colors.text} opacity-70 text-sm">تفاصيل توضح هذه الميزة بناءً على الصورة المرفقة لتعزيز رسالة مشروعك.</p>
+                    </div>
+                </div>
+            `).join('');
+
+            return `
+                ${buildNav(name, colors)}
+                <section class="text-center px-8 py-16 max-w-4xl mx-auto">
+                    <h2 class="text-4xl font-black ${colors.textAccent} mb-4">${name}</h2>
+                    <p class="text-lg ${colors.text} opacity-75">${desc}</p>
+                </section>
+                <section class="max-w-6xl mx-auto px-8 pb-20 grid grid-cols-1 md:grid-cols-${images.length} gap-8">
+                    ${cards}
+                </section>
+            `;
+        }
+
+        function generateGalleryLayout(name, desc, colors, images) {
+            let masonryImages = images.map(img => `
+                <div class="rounded-xl overflow-hidden shadow-md group relative h-64 border border-slate-500/20">
+                    <img src="${img}" class="w-full h-full object-cover transition duration-500 group-hover:scale-110" />
+                    <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center">
+                        <span class="text-white font-bold border-2 border-white px-4 py-2 rounded-lg">عرض التفاصيل</span>
+                    </div>
+                </div>
+            `).join('');
+
+            return `
+                ${buildNav(name, colors)}
+                <section class="text-center px-8 py-20 bg-gradient-to-b from-transparent to-${colors.secondaryBg.split('-')[1]}-500/5">
+                    <h2 class="text-5xl font-black ${colors.text} mb-6">${name}</h2>
+                    <p class="text-lg ${colors.text} opacity-75 max-w-2xl mx-auto">${desc}</p>
+                </section>
+                <section class="max-w-7xl mx-auto px-8 pb-20">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        ${masonryImages}
+                    </div>
+                </section>
+            `;
+        }
+
+        // Export Functionality
+        function buildFullDocument(innerContent, colors) {
+            return `<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>موقع مُولد بالذكاء الاصطناعي</title>
+    <script src="https://cdn.tailwindcss.com"><\/script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style> body { font-family: 'Cairo', sans-serif; } </style>
+</head>
+<body class="${colors.bg}">
+    ${innerContent}
+    <footer class="${colors.secondaryBg} py-8 text-center border-t border-slate-500/20">
+        <p class="${colors.text} opacity-50 font-semibold text-sm">تم بناء هذا الموقع تلقائياً بواسطة منصة المُهندس الذكي</p>
+    </footer>
+</body>
+</html>`;
+        }
+
+        function exportGeneratedCode() {
+            if(!generatedHTMLString) {
+                alert('الرجاء توليد التصميم أولاً برفع مرفقات والضغط على زر التوليد.');
+                return;
+            }
+            document.getElementById('codeOutputText').value = generatedHTMLString;
+            document.getElementById('exportModal').classList.remove('hidden');
+        }
+
+        function closeExport() {
+            document.getElementById('exportModal').classList.add('hidden');
+        }
+
+        function copyGeneratedCode() {
+            const code = document.getElementById('codeOutputText').value;
+            navigator.clipboard.writeText(code).then(() => {
+                alert('تم نسخ الكود بنجاح!');
+            });
+        }
+    </script>
+</body>
+</html>
