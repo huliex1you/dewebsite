@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Dashboard</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        dash: {
+                            bg: '#252528',       // Dark outer background
+                            panel: '#F7F5EE',    // Light cream inner background
+                            textMain: '#1A1A1A', // Main dark text
+                            textMuted: '#8E8E93',// Gray text
+                            border: '#E8E5DC',
+                            // Chart & Status Colors
+                            green: { light: '#B9D5BC', main: '#7FA983', dark: '#638C67' },
+                            yellow:{ light: '#F6DEA5', main: '#E8C678', dark: '#C4A14F' },
+                            blue:  { light: '#B7BEFC', main: '#8A95F6', dark: '#616DE8' },
+                            red:   { light: '#F5B8AD', main: '#ED8675', dark: '#D25E4C' },
+                            barDark: '#2C2C2E',
+                            barLight: '#E5E5EA'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for inner container if needed */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d1d1d1; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-dash-bg h-screen w-screen p-4 flex font-sans overflow-hidden box-border">
+
+    <!-- Sidebar -->
+    <aside class="w-24 lg:w-48 flex flex-col items-center lg:items-start py-6 px-0 lg:px-4 shrink-0 transition-all">
+        <!-- Logo Area -->
+        <div class="mb-10 lg:pl-4 flex flex-col items-center lg:items-start">
+            <div class="relative w-10 h-8">
+                <!-- Abstract stacked cards logo to match image -->
+                <div class="absolute inset-0 bg-dash-red-main rounded-md translate-y-[-4px] translate-x-1 w-full h-5"></div>
+                <div class="absolute inset-0 bg-dash-blue-main rounded-md translate-y-[2px] translate-x-0 w-full h-5"></div>
+                <div class="absolute inset-0 bg-white rounded-md translate-y-[8px] translate-x-[-2px] w-full h-5 shadow-sm border border-gray-100">
+                    <div class="w-full h-1 bg-dash-green-main mt-1 opacity-80"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Links -->
+        <nav class="flex-1 w-full flex flex-col gap-2">
+            <a href="#" class="flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-2 lg:px-4 py-3 text-white lg:bg-white/5 rounded-xl transition-colors">
+                <i class="ph-fill ph-squares-four text-xl"></i>
+                <span class="text-[10px] lg:text-sm font-semibold mt-1 lg:mt-0">Dashboard</span>
+            </a>
+            <a href="#" class="flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-2 lg:px-4 py-3 text-dash-textMuted hover:text-white transition-colors">
+                <i class="ph ph-chart-line-up text-xl"></i>
+                <span class="text-[10px] lg:text-sm font-medium mt-1 lg:mt-0">Analytics</span>
+            </a>
+            <a href="#" class="flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-2 lg:px-4 py-3 text-dash-textMuted hover:text-white transition-colors">
+                <i class="ph ph-receipt text-xl"></i>
+                <span class="text-[10px] lg:text-sm font-medium mt-1 lg:mt-0">Taxes</span>
+            </a>
+            <a href="#" class="flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-2 lg:px-4 py-3 text-dash-textMuted hover:text-white transition-colors">
+                <i class="ph ph-briefcase text-xl"></i>
+                <span class="text-[10px] lg:text-sm font-medium mt-1 lg:mt-0">Investments</span>
+            </a>
+            <a href="#" class="flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-2 lg:px-4 py-3 text-dash-textMuted hover:text-white transition-colors">
+                <i class="ph ph-credit-card text-xl"></i>
+                <span class="text-[10px] lg:text-sm font-medium mt-1 lg:mt-0">Payments</span>
+            </a>
+            <a href="#" class="flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-2 lg:px-4 py-3 text-dash-textMuted hover:text-white transition-colors">
+                <i class="ph ph-coins text-xl"></i>
+                <span class="text-[10px] lg:text-sm font-medium mt-1 lg:mt-0">Credit</span>
+            </a>
+            <a href="#" class="flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-2 lg:px-4 py-3 text-dash-textMuted hover:text-white transition-colors mt-4">
+                <i class="ph ph-lock-key text-xl"></i>
+                <span class="text-[10px] lg:text-sm font-medium mt-1 lg:mt-0">Security</span>
+            </a>
+            <a href="#" class="flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-2 lg:px-4 py-3 text-dash-textMuted hover:text-white transition-colors">
+                <i class="ph ph-headset text-xl"></i>
+                <span class="text-[10px] lg:text-sm font-medium mt-1 lg:mt-0">Support</span>
+            </a>
+        </nav>
+
+        <!-- Logout -->
+        <a href="#" class="flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-2 lg:px-4 py-3 text-dash-textMuted hover:text-white transition-colors mt-auto w-full">
+            <i class="ph ph-sign-out text-xl"></i>
+            <span class="text-[10px] lg:text-sm font-medium mt-1 lg:mt-0">Log Out</span>
+        </a>
+    </aside>
+
+    <!-- Main Content Panel -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden">
+        
+        <!-- Header outside the white box -->
+        <header class="flex justify-between items-center px-2 lg:px-6 mb-4 shrink-0">
+            <h1 class="text-2xl lg:text-3xl font-bold text-white tracking-wide">Dashboard</h1>
+            <div class="flex items-center gap-3">
+                <button class="w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition">
+                    <i class="ph ph-magnifying-glass text-lg"></i>
+                </button>
+                <button class="w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition relative">
+                    <i class="ph ph-bell text-lg"></i>
+                    <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-dash-bg"></span>
+                </button>
+                <button class="w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition">
+                    <i class="ph ph-chat-circle text-lg"></i>
+                </button>
+                <button class="w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition">
+                    <i class="ph ph-gear text-lg"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Inner Content Area (Light Background) -->
+        <div class="flex-1 bg-dash-panel rounded-[2rem] p-6 lg:p-8 overflow-y-auto">
+            
+            <!-- Grid Layout -->
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8 h-full">
+                
+                <!-- Left Section (Stats, Charts, Transactions) -->
+                <div class="xl:col-span-8 flex flex-col gap-8">
+                    
+                    <!-- Top Stats Row -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Revenue -->
+                        <div class="flex flex-col gap-2">
+                            <span class="text-dash-textMain font-semibold">Revenue</span>
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-xl font-bold text-dash-textMuted">$</span>
+                                <span class="text-4xl font-extrabold text-dash-textMain">89,780</span>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <div class="flex items-center justify-center w-6 h-6 rounded-full bg-white shadow-sm text-dash-green-main">
+                                    <i class="ph-bold ph-arrow-up-right text-xs"></i>
+                                </div>
+                                <span class="text-sm font-semibold text-dash-textMain">+2.53%</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Expenses -->
+                        <div class="flex flex-col gap-2 relative">
+                            <!-- Vertical Divider for Desktop -->
+                            <div class="hidden md:block absolute left-[-1.5rem] top-2 bottom-2 w-[1px] bg-dash-border"></div>
+                            
+                            <span class="text-dash-textMain font-semibold">Expenses</span>
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-xl font-bold text-dash-textMuted">$</span>
+                                <span class="text-4xl font-extrabold text-dash-textMain">27,900</span>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <div class="flex items-center justify-center w-6 h-6 rounded-full bg-white shadow-sm text-dash-green-main">
+                                    <i class="ph-bold ph-arrow-up-right text-xs"></i>
+                                </div>
+                                <span class="text-sm font-semibold text-dash-textMain">+0.98%</span>
+                            </div>
+                        </div>
+
+                        <!-- Profits -->
+                        <div class="flex flex-col gap-2 relative">
+                            <!-- Vertical Divider for Desktop -->
+                            <div class="hidden md:block absolute left-[-1.5rem] top-2 bottom-2 w-[1px] bg-dash-border"></div>
+
+                            <span class="text-dash-textMain font-semibold">Profits</span>
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-xl font-bold text-dash-textMuted">$</span>
+                                <span class="text-4xl font-extrabold text-dash-textMain">61,880</span>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <div class="flex items-center justify-center w-6 h-6 rounded-full bg-white shadow-sm text-dash-green-main">
+                                    <i class="ph-bold ph-arrow-up-right text-xs"></i>
+                                </div>
+                                <span class="text-sm font-semibold text-dash-textMain">+4.13%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Middle Charts Row -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        
+                        <!-- Finance Performance (Bar Chart) -->
+                        <div class="flex flex-col h-64">
+                            <h3 class="text-sm font-bold text-dash-textMain mb-4">Finace Performance</h3>
+                            <div class="flex-1 relative w-full h-full">
+                                <canvas id="financeChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Income Statistics (Line Chart) -->
+                        <div class="flex flex-col h-64">
+                            <h3 class="text-sm font-bold text-dash-textMain mb-4">Income Statistics</h3>
+                            <div class="flex-1 relative w-full h-full">
+                                <canvas id="incomeChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Transactions List -->
+                    <div class="flex flex-col mt-4">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-bold text-dash-textMain">Transactions</h3>
+                            <button class="flex items-center gap-2 bg-white border border-dash-border px-4 py-1.5 rounded-full text-sm font-medium text-dash-textMain shadow-sm hover:bg-gray-50 transition">
+                                Sort By: Date
+                                <i class="ph ph-caret-down text-dash-textMuted"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="flex flex-col gap-4">
+                            <!-- Item 1 -->
+                            <div class="flex items-center justify-between group">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-dash-textMain group-hover:scale-105 transition-transform">
+                                        <i class="ph ph-credit-card"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-dash-textMain text-sm">Theresa Webb</h4>
+                                    </div>
+                                </div>
+                                <div class="hidden sm:block text-sm text-dash-textMuted font-medium text-right flex-1 pr-8">
+                                    7:30 pm, 08 may 2022
+                                </div>
+                                <div class="w-24 text-right font-bold text-dash-textMain text-sm">
+                                    +$1200
+                                </div>
+                                <div class="w-24 flex justify-end">
+                                    <span class="px-3 py-1 bg-dash-red-light/30 text-dash-red-dark text-xs font-bold rounded-full">Pending</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Item 2 -->
+                            <div class="flex items-center justify-between group">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-dash-textMain group-hover:scale-105 transition-transform">
+                                        <i class="ph ph-download-simple"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-dash-textMain text-sm">Annette Black</h4>
+                                    </div>
+                                </div>
+                                <div class="hidden sm:block text-sm text-dash-textMuted font-medium text-right flex-1 pr-8">
+                                    8:25 pm, 06 may 2022
+                                </div>
+                                <div class="w-24 text-right font-bold text-dash-textMain text-sm">
+                                    -$460
+                                </div>
+                                <div class="w-24 flex justify-end">
+                                    <span class="px-3 py-1 bg-dash-green-light/40 text-dash-green-dark text-xs font-bold rounded-full">Paid</span>
+                                </div>
+                            </div>
+
+                            <!-- Item 3 -->
+                            <div class="flex items-center justify-between group">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-dash-textMain group-hover:scale-105 transition-transform">
+                                        <i class="ph ph-credit-card"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-dash-textMain text-sm">Jenny Wilson</h4>
+                                    </div>
+                                </div>
+                                <div class="hidden sm:block text-sm text-dash-textMuted font-medium text-right flex-1 pr-8">
+                                    11:30 am, 04 may 2022
+                                </div>
+                                <div class="w-24 text-right font-bold text-dash-textMain text-sm">
+                                    +$1140
+                                </div>
+                                <div class="w-24 flex justify-end">
+                                    <span class="px-3 py-1 bg-dash-blue-light/30 text-dash-blue-dark text-xs font-bold rounded-full">Received</span>
+                                </div>
+                            </div>
+
+                            <!-- Item 4 -->
+                            <div class="flex items-center justify-between group">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-dash-textMain group-hover:scale-105 transition-transform">
+                                        <i class="ph ph-download-simple"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-dash-textMain text-sm">Albert Flores</h4>
+                                    </div>
+                                </div>
+                                <div class="hidden sm:block text-sm text-dash-textMuted font-medium text-right flex-1 pr-8">
+                                    9:12 pm, 02 may 2022
+                                </div>
+                                <div class="w-24 text-right font-bold text-dash-textMain text-sm">
+                                    -$1220
+                                </div>
+                                <div class="w-24 flex justify-end">
+                                    <span class="px-3 py-1 bg-dash-green-light/40 text-dash-green-dark text-xs font-bold rounded-full">Paid</span>
+                                </div>
+                            </div>
+
+                            <!-- Item 5 -->
+                            <div class="flex items-center justify-between group">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-dash-textMain group-hover:scale-105 transition-transform">
+                                        <i class="ph ph-credit-card"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-dash-textMain text-sm">Kristin Watson</h4>
+                                    </div>
+                                </div>
+                                <div class="hidden sm:block text-sm text-dash-textMuted font-medium text-right flex-1 pr-8">
+                                    7:30 pm, 02 may 2022
+                                </div>
+                                <div class="w-24 text-right font-bold text-dash-textMain text-sm">
+                                    +$3270
+                                </div>
+                                <div class="w-24 flex justify-end">
+                                    <span class="px-3 py-1 bg-dash-blue-light/30 text-dash-blue-dark text-xs font-bold rounded-full">Received</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Section (KPIs) -->
+                <div class="xl:col-span-4 flex flex-col gap-6 border-t xl:border-t-0 xl:border-l border-dash-border pt-6 xl:pt-0 xl:pl-6">
+                    
+                    <!-- KPI Header -->
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-xl font-extrabold text-dash-textMain">KPIs</h2>
+                        <button class="flex items-center gap-2 bg-white border border-dash-border px-3 py-1.5 rounded-full text-xs font-bold text-dash-textMuted shadow-sm hover:bg-gray-50 transition">
+                            <i class="ph ph-calendar-blank"></i>
+                            1 Jan, 2023 - 1 Jun, 2023
+                            <i class="ph ph-caret-down"></i>
+                        </button>
+                    </div>
+
+                    <!-- Revenue Growth (Grouped Bar Chart) -->
+                    <div class="flex flex-col h-64 mt-2">
+                        <h3 class="text-sm font-bold text-dash-textMain mb-4">Revenue Growth</h3>
+                        <div class="flex-1 relative w-full">
+                            <canvas id="growthChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Metrics Grid (Donut Charts) -->
+                    <div class="grid grid-cols-2 gap-4 mt-4">
+                        
+                        <!-- Profit Margin -->
+                        <div class="bg-dash-green-light rounded-2xl p-4 flex flex-col justify-between">
+                            <h4 class="text-dash-textMain font-bold text-sm mb-4">Profit Margin</h4>
+                            <div class="relative w-20 h-20 self-center">
+                                <canvas id="donut-profit"></canvas>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center text-dash-textMain font-bold">
+                                    <span class="text-lg leading-none">75%</span>
+                                    <span class="text-[10px] leading-none mt-1">Paid</span>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-dash-textMain font-extrabold text-lg">$61,880</div>
+                        </div>
+
+                        <!-- Gross Margin -->
+                        <div class="bg-dash-yellow-light rounded-2xl p-4 flex flex-col justify-between">
+                            <h4 class="text-dash-textMain font-bold text-sm mb-4">Gross Margin</h4>
+                            <div class="relative w-20 h-20 self-center">
+                                <canvas id="donut-gross"></canvas>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center text-dash-textMain font-bold">
+                                    <span class="text-lg leading-none">78%</span>
+                                    <span class="text-[10px] leading-none mt-1">Paid</span>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-dash-textMain font-extrabold text-lg">$78,542</div>
+                        </div>
+
+                        <!-- Accounts Receivable -->
+                        <div class="bg-dash-blue-light rounded-2xl p-4 flex flex-col justify-between">
+                            <h4 class="text-dash-textMain font-bold text-sm mb-4">Accounts Receivable</h4>
+                            <div class="relative w-20 h-20 self-center">
+                                <canvas id="donut-ar"></canvas>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center text-dash-textMain font-bold">
+                                    <span class="text-lg leading-none">87%</span>
+                                    <span class="text-[10px] leading-none mt-1">Received</span>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-dash-textMain font-extrabold text-lg">$12,322,90</div>
+                        </div>
+
+                        <!-- Accounts Payable -->
+                        <div class="bg-dash-red-light rounded-2xl p-4 flex flex-col justify-between">
+                            <h4 class="text-dash-textMain font-bold text-sm mb-4">Accounts Payable</h4>
+                            <div class="relative w-20 h-20 self-center">
+                                <canvas id="donut-ap"></canvas>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center text-dash-textMain font-bold">
+                                    <span class="text-lg leading-none">54%</span>
+                                    <span class="text-[10px] leading-none mt-1">Paid</span>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-dash-textMain font-extrabold text-lg">$3,322,10</div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Global Chart setup for styling
+        Chart.defaults.font.family = '"Plus Jakarta Sans", sans-serif';
+        Chart.defaults.color = '#8E8E93';
+        Chart.defaults.plugins.tooltip.backgroundColor = '#ffffff';
+        Chart.defaults.plugins.tooltip.titleColor = '#1A1A1A';
+        Chart.defaults.plugins.tooltip.bodyColor = '#1A1A1A';
+        Chart.defaults.plugins.tooltip.borderColor = '#E8E5DC';
+        Chart.defaults.plugins.tooltip.borderWidth = 1;
+        Chart.defaults.plugins.tooltip.padding = 10;
+        Chart.defaults.plugins.tooltip.displayColors = false;
+
+        window.onload = function() {
+            
+            // 1. Finance Performance (Bar Chart)
+            const ctxFinance = document.getElementById('financeChart').getContext('2d');
+            new Chart(ctxFinance, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],
+                    datasets: [{
+                        label: 'Income',
+                        data: [40, 30, 20, 50, 60, 45, 65, 55, 60, 75],
+                        backgroundColor: '#2C2C2E', // Dark bars
+                        borderRadius: 20,
+                        barThickness: 8
+                    },
+                    {
+                        label: 'Spanned',
+                        data: [25, 20, 15, 30, 40, 25, 45, 35, 40, 50],
+                        backgroundColor: '#E5E5EA', // Light bars
+                        borderRadius: 20,
+                        barThickness: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true, position: 'bottom', labels: { usePointStyle: true, boxWidth: 6 } } },
+                    scales: {
+                        y: { display: false, beginAtZero: true }, // Hide Y axis like in image
+                        x: { grid: { display: false, drawBorder: false } }
+                    }
+                }
+            });
+
+            // 2. Income Statistics (Line Chart)
+            const ctxIncome = document.getElementById('incomeChart').getContext('2d');
+            new Chart(ctxIncome, {
+                type: 'line',
+                data: {
+                    labels: ['15%', '25%', '35%', '45%', '55%', '65%', '75%', '85%'],
+                    datasets: [
+                        {
+                            label: 'Income',
+                            data: [1.2, 1.4, 1.1, 1.6, 1.3, 1.5, 1.3, 1.4],
+                            borderColor: '#7FA983', // Green line
+                            borderWidth: 2,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#7FA983',
+                            pointBorderWidth: 2
+                        },
+                        {
+                            label: 'Spanned',
+                            data: [1.5, 1.3, 1.6, 1.4, 1.7, 1.5, 1.6, 1.5],
+                            borderColor: '#E8C678', // Yellow line
+                            borderWidth: 2,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#E8C678',
+                            pointBorderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { display: true, position: 'bottom', labels: { usePointStyle: true, boxWidth: 6 } },
+                        tooltip: {
+                            callbacks: {
+                                title: () => 'Apr 15',
+                                label: (context) => context.dataset.label === 'Income' ? ' $16,259.98' : ' $11,223.18'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            grid: { color: '#E8E5DC', drawBorder: false, borderDash: [5, 5] },
+                            ticks: { callback: function(value) { return value + 'm'; } }
+                        },
+                        x: { grid: { display: false, drawBorder: false } }
+                    }
+                }
+            });
+
+            // 3. Revenue Growth (Grouped Bar Chart)
+            const ctxGrowth = document.getElementById('growthChart').getContext('2d');
+            new Chart(ctxGrowth, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [
+                        { label: 'Total Sales', data: [55, 45, 60, 50, 45, 65], backgroundColor: '#7FA983', borderRadius: 10, barThickness: 4 },
+                        { label: 'Active User', data: [40, 55, 30, 45, 60, 70], backgroundColor: '#E8C678', borderRadius: 10, barThickness: 4 },
+                        { label: 'Total Income', data: [35, 30, 50, 40, 35, 55], backgroundColor: '#8A95F6', borderRadius: 10, barThickness: 4 },
+                        { label: 'Total Taxes', data: [20, 25, 15, 20, 15, 30], backgroundColor: '#ED8675', borderRadius: 10, barThickness: 4 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true, position: 'bottom', labels: { usePointStyle: true, boxWidth: 5, font: {size: 9} } } },
+                    scales: {
+                        y: { 
+                            grid: { color: '#E8E5DC', drawBorder: false },
+                            ticks: { callback: function(value) { return value + 'k'; }, font: {size: 10} }
+                        },
+                        x: { grid: { display: false, drawBorder: false } }
+                    }
+                }
+            });
+
+            // 4. Donut Charts configuration helper
+            function createDonut(id, percentage, colorTrack) {
+                const ctx = document.getElementById(id).getContext('2d');
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            data: [percentage, 100 - percentage],
+                            backgroundColor: ['#ffffff', colorTrack], // White for value, dark color for track
+                            borderWidth: 0,
+                            cutout: '75%'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { tooltip: { enabled: false }, legend: { display: false } },
+                        animation: { animateScale: true }
+                    }
+                });
+            }
+
+            // Init Donut Charts matching the image colors
+            createDonut('donut-profit', 75, '#638C67'); // Dark Green Track
+            createDonut('donut-gross', 78, '#C4A14F');  // Dark Yellow Track
+            createDonut('donut-ar', 87, '#616DE8');     // Dark Blue Track
+            createDonut('donut-ap', 54, '#D25E4C');     // Dark Red Track
+        };
+    </script>
+</body>
+</html>
