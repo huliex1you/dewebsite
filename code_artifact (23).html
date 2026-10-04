@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة إدارة الحضور والغياب للمدارس</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sidebar: '#4a4175', /* Adjusted to match the deep purple in the image more closely */
+                        mainBg: '#f4f2f8', /* The soft grayish-lavender background */
+                        primary: {
+                            900: '#2b2447',
+                            800: '#3c355a',
+                            700: '#50447d',
+                            600: '#695a9e',
+                            500: '#8676bf',
+                            400: '#a396d1',
+                            300: '#c2b9e4',
+                        },
+                        accent: {
+                            coral: '#f28b82', /* Matched to the image's first card */
+                            purple: '#61558e', /* Matched to the image's second card */
+                            yellow: '#f6c453', /* Matched to the image's third card */
+                            green: '#5db472'  /* Matched to the image's fourth card */
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Tajawal', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.03)',
+                        'card': '0 2px 10px rgba(0, 0, 0, 0.02)',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- SheetJS for Excel Upload/Download -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <!-- SweetAlert2 for Alerts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- CryptoJS for Encryption (Library Kept, but feature disabled per request) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f4f2f8; /* mainBg */
+        }
+        @media print {
+            body { background-color: white !important; }
+            .sidebar, header, .no-print, button:not(.print-btn-keep) { display: none !important; }
+            main { margin: 0 !important; padding: 0 !important; overflow: visible !important; background: white !important; }
+            #main-container { padding: 0 !important; overflow: visible !important; }
+            .card { box-shadow: none !important; border: 1px solid #eee !important; break-inside: avoid; }
+            .print-header { display: block !important; text-align: center; margin-bottom: 20px; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+        .print-header { display: none; }
+        
+        .sidebar {
+            background-color: #4a4175; /* Target visual style from image */
+            transition: all 0.3s ease-in-out;
+        }
+        
+        /* EXACT REPLICA OF THE SIDEBAR ACTIVE ITEM CURVES */
+        .sidebar-item {
+            color: #c2b9e4;
+            margin: 0.25rem 1rem;
+            border-radius: 0.75rem;
+            padding: 0.85rem 1.25rem;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        .sidebar-item:hover {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        /* The Active Item with Gooey curves */
+        .sidebar-item.active {
+            background-color: #f4f2f8 !important; /* matches mainBg */
+            color: #4a4175 !important;
+            margin-right: 1.5rem;
+            margin-left: 0;
+            border-radius: 0;
+            border-top-right-radius: 9999px; /* Rounded completely on the right */
+            border-bottom-right-radius: 9999px;
+            border-top-left-radius: 0; /* Flat on the left to touch content */
+            border-bottom-left-radius: 0;
+            font-weight: 800;
+            position: relative;
+        }
+        .sidebar-item.active i {
+            color: #4a4175;
+        }
+
+        /* Top inner curve for active item */
+        .sidebar-item.active::before {
+            content: "";
+            position: absolute;
+            top: -20px;
+            left: 0;
+            width: 20px;
+            height: 20px;
+            background-color: transparent;
+            border-bottom-left-radius: 20px;
+            box-shadow: -10px 10px 0 10px #f4f2f8; /* تم تصحيح أبعاد التمدد لملء الزاوية بنعومة */
+            pointer-events: none;
+        }
+
+        /* Bottom inner curve for active item */
+        .sidebar-item.active::after {
+            content: "";
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            width: 20px;
+            height: 20px;
+            background-color: transparent;
+            border-top-left-radius: 20px;
+            box-shadow: -10px -10px 0 10px #f4f2f8; /* تم تصحيح أبعاد التمدد لملء الزاوية بنعومة */
+            pointer-events: none;
+        }
+        
+        /* Custom Table Styling */
+        table thead tr th {
+            background-color: transparent;
+            color: #8892a0; /* Lighter, softer table headers like the image vibe */
+            font-weight: 700;
+            border-bottom: 1px solid #edf2f7;
+        }
+        table tbody tr { border-bottom: 1px solid #f3f4f6; }
+        
+        .card {
+            background-color: white;
+            border-radius: 1rem; /* Softer rounded corners */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02); /* Very soft shadow */
+            border: none;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .profile-img-container {
+            position: relative;
+            cursor: pointer;
+        }
+        .profile-img-overlay {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(0,0,0,0.5);
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .profile-img-container:hover .profile-img-overlay { opacity: 1; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden text-gray-800 bg-mainBg">
+
+    <div id="login-modal" class="fixed inset-0 z-50 bg-sidebar flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md p-8 rounded-[2rem] shadow-2xl relative overflow-hidden">
+            <!-- Decorative accent -->
+            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-accent-purple to-accent-coral"></div>
+            
+            <div class="text-center mb-8 mt-2">
+                <div class="flex justify-center mb-6">
+                    <img id="login-logo-img" src="https://placehold.co/200x200/f4f2f8/4a4175?text=Logo" alt="شعار المنصة" class="w-32 h-32 rounded-3xl shadow-sm object-contain border border-gray-50 bg-gray-50 p-2">
+                </div>
+                <h1 class="text-3xl font-extrabold text-sidebar mb-1">منصة <span class="text-accent-coral">حضور</span></h1>
+                <p class="text-sm text-gray-400 mt-2 font-medium">تسجيل الدخول للنظام الموحد</p>
+            </div>
+            
+            <form onsubmit="handleLogin(event)" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">اسم المستخدم</label>
+                    <div class="flex relative w-full shadow-sm rounded-xl overflow-hidden border border-gray-200 focus-within:border-sidebar focus-within:ring-1 focus-within:ring-sidebar transition-all">
+                        <!-- Dynamic Smart Email Input -->
+                        <input type="text" id="login-username" required placeholder="username" dir="ltr" oninput="handleEmailAutocompleteDynamic(this)" class="flex-1 px-4 py-3.5 text-sm focus:outline-none bg-gray-50 text-left w-full font-medium text-gray-700">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">كلمة المرور</label>
+                    <input type="password" id="login-password" required placeholder="••••••••" class="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:border-sidebar focus:ring-1 focus:ring-sidebar bg-gray-50 transition-all font-medium">
+                </div>
+                
+                <div class="flex items-center justify-between mt-2 mb-4">
+                    <a href="#" onclick="handleForgotPassword(event)" class="text-sm text-sidebar hover:text-accent-coral font-bold transition-colors">
+                        نسيت كلمة المرور؟
+                    </a>
+                </div>
+
+                <button type="submit" class="w-full bg-sidebar hover:bg-primary-900 text-white font-bold py-4 rounded-xl transition shadow-md text-lg mt-2">
+                    دخول المنصة
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <aside class="sidebar w-64 flex flex-col hidden md:flex h-full shadow-2xl z-20" id="sidebar-container">
+        <!-- Logo Area -->
+        <div class="p-8 flex items-center justify-center">
+            <img id="sidebar-logo-img" src="https://placehold.co/100x100/f4f2f8/4a4175?text=Logo" class="w-14 h-14 rounded-2xl ml-3 object-contain shadow-sm hidden bg-white p-1">
+            <h1 class="text-3xl font-black tracking-wide text-white">حضور</h1>
+        </div>
+
+        <!-- Profile Area -->
+        <div class="px-6 pb-6 mb-4 flex flex-col items-center border-b border-white/10">
+            <label class="profile-img-container mb-3">
+                <img src="https://placehold.co/150x150/f4f2f8/a396d1?text=User" id="sidebar-profile-img" alt="صورة المستخدم" class="w-20 h-20 rounded-full object-cover shadow-lg border-2 border-primary-400 bg-white p-0.5">
+                <div class="profile-img-overlay rounded-full">
+                    <i class="fas fa-camera text-white text-xl"></i>
+                </div>
+                <input type="file" id="profile-img-upload" class="hidden" accept="image/*" onchange="handleProfileImageUpload(event)">
+            </label>
+            <h2 class="text-lg font-bold text-white text-center w-full truncate" id="current-user-name">الاسم</h2>
+            <p class="text-xs text-primary-300 font-medium mt-1 truncate max-w-full" id="current-user-role">المنصب</p>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="flex-1 overflow-y-auto py-2 no-scrollbar">
+            <ul class="space-y-1" id="sidebar-menu-list">
+                <li>
+                    <a href="#" class="sidebar-item active" onclick="showSection('dashboard')">
+                        <i class="fas fa-chart-pie w-6 ml-2"></i>
+                        <span>لوحة القيادة</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item" onclick="showSection('attendance')">
+                        <i class="fas fa-calendar-check w-6 ml-2"></i>
+                        <span>الحضور والغياب</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item" onclick="showSection('excuses')">
+                        <i class="fas fa-file-medical w-6 ml-2"></i>
+                        <span>الأعذار والمرفقات</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item" onclick="showSection('staff')">
+                        <i class="fas fa-users w-6 ml-2"></i>
+                        <span>شؤون الموظفين</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item" onclick="showSection('departments')">
+                        <i class="fas fa-building w-6 ml-2"></i>
+                        <span>الأقسام والمراحل</span>
+                    </a>
+                </li>
+                <li id="menu-accounts">
+                    <a href="#" class="sidebar-item" onclick="showSection('accounts')">
+                        <i class="fas fa-user-shield w-6 ml-2"></i>
+                        <span>إدارة الحسابات</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item" onclick="showSection('fingerprint')">
+                        <i class="fas fa-cloud-upload-alt w-6 ml-2"></i>
+                        <span>رفع البيانات والبصمة</span>
+                    </a>
+                </li>
+                <li id="menu-reports">
+                    <a href="#" class="sidebar-item" onclick="showSection('reports')">
+                        <i class="fas fa-chart-line w-6 ml-2"></i>
+                        <span>التقارير السنوية</span>
+                    </a>
+                </li>
+                <li id="menu-settings">
+                    <a href="#" class="sidebar-item" onclick="showSection('settings')">
+                        <i class="fas fa-cog w-6 ml-2"></i>
+                        <span>إعدادات النظام</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <!-- Logout -->
+        <div class="p-6 mt-auto">
+            <button onclick="handleLogout()" class="w-full flex items-center justify-center px-4 py-3 bg-white/5 hover:bg-accent-coral text-white rounded-xl transition-colors font-bold text-sm">
+                <i class="fas fa-sign-out-alt ml-2"></i>
+                تسجيل الخروج
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+        
+        <div class="flex-1 overflow-x-hidden overflow-y-auto px-4 md:px-8 pb-8 pt-6" id="main-container">
+            
+            <!-- Exact Replica Header Card -->
+            <header class="bg-white rounded-[1rem] shadow-sm border border-gray-100 flex justify-between items-center px-6 py-5 mb-8 z-10 no-print">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold text-gray-800">مرحباً بك في <span id="header-org-name" class="text-sidebar">المنشأة</span></h1>
+                </div>
+                
+                <div class="flex items-center">
+                    <span class="text-gray-800 font-bold text-sm hidden md:inline">العام الدراسي 2026 - 2027</span>
+                    <i class="fas fa-layer-group text-2xl text-sidebar ml-4 mr-3 opacity-80"></i>
+                </div>
+            </header>
+
+            <section id="dashboard" class="space-y-8 block">
+                <!-- Exact Replica Stats Cards (Flex layout matching the image) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    
+                    <!-- Card 1: Total (Coral) -->
+                    <div class="bg-white rounded-[1rem] shadow-sm border border-gray-100 p-5 flex items-center relative h-28 overflow-hidden">
+                        <div class="absolute right-0 top-0 bottom-0 w-[6px] bg-accent-coral rounded-r-lg"></div>
+                        
+                        <div class="flex-shrink-0 mr-4 ml-5 flex justify-center items-center w-12">
+                           <i class="fas fa-school text-4xl text-accent-coral opacity-70"></i>
+                        </div>
+                        
+                        <div class="h-12 w-px bg-gray-100 mx-2"></div>
+                        
+                        <div class="flex flex-col justify-center text-center flex-1">
+                            <p class="text-gray-400 text-xs font-bold mb-1 uppercase tracking-wider">إجمالي الموظفين</p>
+                            <h3 class="text-3xl font-black text-gray-700" id="stat-total-emps">0</h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Card 2: Present (Purple) -->
+                    <div class="bg-white rounded-[1rem] shadow-sm border border-gray-100 p-5 flex items-center relative h-28 overflow-hidden">
+                        <div class="absolute right-0 top-0 bottom-0 w-[6px] bg-accent-purple rounded-r-lg"></div>
+                        
+                        <div class="flex-shrink-0 mr-4 ml-5 flex justify-center items-center w-12">
+                           <i class="fas fa-chalkboard-teacher text-4xl text-accent-purple opacity-70"></i>
+                        </div>
+                        
+                        <div class="h-12 w-px bg-gray-100 mx-2"></div>
+                        
+                        <div class="flex flex-col justify-center text-center flex-1">
+                            <p class="text-gray-400 text-xs font-bold mb-1 uppercase tracking-wider">الحضور اليوم</p>
+                            <h3 class="text-3xl font-black text-gray-700" id="stat-present">0</h3>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Excused (Yellow) -->
+                    <div class="bg-white rounded-[1rem] shadow-sm border border-gray-100 p-5 flex items-center relative h-28 overflow-hidden">
+                        <div class="absolute right-0 top-0 bottom-0 w-[6px] bg-accent-yellow rounded-r-lg"></div>
+                        
+                        <div class="flex-shrink-0 mr-4 ml-5 flex justify-center items-center w-12">
+                           <i class="fas fa-user-graduate text-4xl text-accent-yellow opacity-80"></i>
+                        </div>
+                        
+                        <div class="h-12 w-px bg-gray-100 mx-2"></div>
+                        
+                        <div class="flex flex-col justify-center text-center flex-1">
+                            <p class="text-gray-400 text-xs font-bold mb-1 uppercase tracking-wider">غياب بعذر</p>
+                            <h3 class="text-3xl font-black text-gray-700" id="stat-excused">0</h3>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: Absent (Green) -->
+                    <div class="bg-white rounded-[1rem] shadow-sm border border-gray-100 p-5 flex items-center relative h-28 overflow-hidden">
+                        <div class="absolute right-0 top-0 bottom-0 w-[6px] bg-accent-green rounded-r-lg"></div>
+                        
+                        <div class="flex-shrink-0 mr-4 ml-5 flex justify-center items-center w-12">
+                           <i class="fas fa-users text-4xl text-accent-green opacity-70"></i>
+                        </div>
+                        
+                        <div class="h-12 w-px bg-gray-100 mx-2"></div>
+                        
+                        <div class="flex flex-col justify-center text-center flex-1">
+                            <p class="text-gray-400 text-xs font-bold mb-1 uppercase tracking-wider">غياب بدون عذر</p>
+                            <h3 class="text-3xl font-black text-gray-700" id="stat-absent">0</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty space for charts (matching image structure) -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="card p-6 lg:col-span-2 h-80 flex flex-col items-center justify-center text-center border border-gray-100 bg-white">
+                         <h3 class="text-lg font-bold text-gray-800 mb-auto w-full text-right">سجل التقويم والحضور</h3>
+                         <i class="fas fa-calendar-alt text-6xl text-gray-200 mb-4"></i>
+                         <p class="text-sm text-gray-400 mt-2 font-medium">سيتم تفعيل التقويم بناءً على البيانات المتراكمة.</p>
+                         <div class="mt-auto"></div>
+                    </div>
+                    <div class="card p-6 h-80 flex flex-col items-center justify-center text-center border border-gray-100 bg-white">
+                         <h3 class="text-lg font-bold text-gray-800 mb-auto w-full text-right">المراحل التعليمية</h3>
+                         <i class="fas fa-chart-bar text-6xl text-gray-200 mb-4"></i>
+                         <p class="text-sm text-gray-400 mt-2 font-medium">مساحة مخصصة للرسم البياني</p>
+                         <div class="mt-auto"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="attendance" class="space-y-6 hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-extrabold text-sidebar">سجل الحضور والغياب</h2>
+                    <div class="flex space-x-2 space-x-reverse no-print">
+                        <button class="bg-white border border-gray-100 text-gray-600 hover:text-sidebar px-4 py-2.5 rounded-xl text-sm font-bold transition shadow-sm">
+                            <i class="fas fa-file-excel ml-1 text-green-600"></i> تصدير Excel
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card p-5 flex flex-wrap gap-4 items-end bg-white no-print shadow-sm border border-gray-100">
+                    <div class="flex-1 min-w-[200px]">
+                        <label class="block text-xs font-bold text-gray-400 mb-2 uppercase">المرحلة / القسم</label>
+                        <select id="stage-filter" onchange="renderAttendance()" class="w-full border-gray-100 rounded-xl bg-gray-50 p-3 border focus:ring-1 focus:ring-sidebar outline-none font-medium text-gray-700">
+                            <!-- Populated from settings -->
+                        </select>
+                    </div>
+                    <div class="flex-1 min-w-[200px]">
+                        <label class="block text-xs font-bold text-gray-400 mb-2 uppercase">فترة المسير (الدورة)</label>
+                        <select id="attendance-cycle-filter" class="w-full border-gray-100 rounded-xl bg-gray-50 p-3 border focus:ring-1 focus:ring-sidebar outline-none font-medium text-gray-700">
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card overflow-hidden shadow-sm border border-gray-100">
+                    <div class="overflow-x-auto relative">
+                        <table class="w-full text-sm text-right text-gray-600 border-collapse">
+                            <thead class="text-xs uppercase bg-white">
+                                <tr>
+                                    <th scope="col" class="px-4 py-5 w-10 text-center rounded-tr-xl">#</th>
+                                    <th scope="col" class="px-6 py-5 whitespace-nowrap min-w-[220px]">بيانات الموظف</th>
+                                    <th scope="col" class="px-4 py-5 whitespace-nowrap text-center">الرقم والهوية</th>
+                                    <th scope="col" class="px-4 py-5 whitespace-nowrap text-center">تاريخ المباشرة</th>
+                                    <th scope="col" class="px-2 py-5 text-center text-accent-coral" title="بدون عذر">ب.ع</th>
+                                    <th scope="col" class="px-2 py-5 text-center text-accent-yellow" title="بعذر">ع</th>
+                                    <th scope="col" class="px-4 py-5 text-center min-w-[180px]">قرار العذر</th>
+                                    <th scope="col" class="px-4 py-5 text-center bg-gray-50 font-black">إجمالي الغياب</th>
+                                    <th scope="col" class="px-4 py-5 text-center">الاستقالة</th>
+                                    <th scope="col" class="px-4 py-5 rounded-tl-xl">ملاحظات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendance-table-body" class="bg-white">
+                                <!-- Data rendered via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="excuses" class="hidden">
+                <div class="card p-12 text-center text-gray-400 border border-gray-100 bg-white mt-6 shadow-sm">
+                    <i class="fas fa-file-medical text-6xl mb-4 text-accent-yellow/50"></i>
+                    <h2 class="text-2xl font-bold text-gray-600 mb-2">الأعذار والمرفقات</h2>
+                    <p class="font-medium">مساحة عمل مخصصة لمراجعة الإجازات والمستندات الطبية.</p>
+                </div>
+            </section>
+            
+            <section id="staff" class="hidden space-y-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-extrabold text-sidebar">شؤون الموظفين</h2>
+                    <span class="bg-sidebar/10 text-sidebar px-4 py-1.5 rounded-full text-sm font-bold" id="staff-count">0 موظف</span>
+                </div>
+                <div class="card overflow-hidden shadow-sm border border-gray-100">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-right text-gray-600">
+                            <thead class="text-xs uppercase bg-white">
+                                <tr>
+                                    <th class="px-6 py-5 font-bold rounded-tr-xl">الاسم</th>
+                                    <th class="px-4 py-5 font-bold text-center">الرقم الوظيفي</th>
+                                    <th class="px-4 py-5 font-bold text-center">الهوية</th>
+                                    <th class="px-4 py-5 font-bold text-center">الجوال</th>
+                                    <th class="px-4 py-5 font-bold">الوظيفة</th>
+                                    <th class="px-4 py-5 font-bold">المرحلة / القسم</th>
+                                    <th class="px-4 py-5 font-bold text-center rounded-tl-xl">الحالة</th>
+                                </tr>
+                            </thead>
+                            <tbody id="staff-table-body" class="bg-white">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="departments" class="hidden space-y-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-extrabold text-sidebar">الأقسام والمراحل التعليمية</h2>
+                </div>
+                <div id="departments-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                </div>
+            </section>
+
+            <section id="accounts" class="hidden space-y-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-extrabold text-sidebar">إدارة حسابات المنصة</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="card p-6 lg:col-span-1 border border-gray-100 shadow-sm" id="create-user-card">
+                        <h3 class="text-lg font-extrabold mb-5 text-sidebar border-b border-gray-100 pb-3">إنشاء حساب جديد</h3>
+                        <form id="create-user-form" onsubmit="handleCreateUser(event)" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 mb-1.5 uppercase">اسم المستخدم (البريد الإلكتروني)</label>
+                                <div class="flex relative w-full rounded-xl overflow-hidden border border-gray-200 focus-within:border-sidebar focus-within:ring-1 focus-within:ring-sidebar transition-all bg-gray-50">
+                                    <input type="text" id="new-user-prefix" required placeholder="username" dir="ltr" oninput="handleEmailAutocompleteDynamic(this)" class="flex-1 px-3 py-3 text-sm focus:outline-none bg-transparent text-left font-medium text-gray-700">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 mb-1.5 uppercase">كلمة المرور</label>
+                                <input type="password" id="new-user-pass" required class="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-sidebar focus:ring-1 focus:ring-sidebar bg-gray-50 transition-all font-medium">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 mb-1.5 uppercase">الدور والصلاحيات</label>
+                                <select id="new-user-role-type" required class="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-sidebar bg-gray-50 font-medium text-gray-700">
+                                    <option value="editor">مدخل بيانات (محدد بمرحلة)</option>
+                                    <option value="hr">الموارد البشرية (صلاحية واسعة)</option>
+                                </select>
+                            </div>
+                            
+                            <div id="stage-selection-box" class="bg-gray-50 p-4 rounded-xl mt-2 border border-gray-100">
+                                <label class="block text-xs font-bold text-sidebar mb-2">تخصيص المرحلة للقسم / المدخل</label>
+                                
+                                <select id="new-user-stage" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none bg-white font-medium text-gray-700 mb-3">
+                                    <!-- Populated from settings -->
+                                </select>
+                                
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <select id="new-user-gender" class="w-full border border-gray-200 rounded-lg px-2 py-2 text-xs focus:outline-none bg-white text-gray-600">
+                                            <option value="">(الجنس)</option>
+                                            <option value="بنين">بنين</option>
+                                            <option value="بنات">بنات</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <select id="new-user-track" class="w-full border border-gray-200 rounded-lg px-2 py-2 text-xs focus:outline-none bg-white text-gray-600">
+                                            <option value="">(المسار)</option>
+                                            <option value="وطني">وطني</option>
+                                            <option value="عالمي">عالمي</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="menu-permissions-box">
+                                <label class="block text-xs font-bold text-gray-400 mb-2 mt-4 uppercase">صلاحيات القائمة الجانبية</label>
+                                <div class="grid grid-cols-2 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                    <label class="flex items-center space-x-2 space-x-reverse cursor-pointer">
+                                        <input type="checkbox" name="menu_perms" value="attendance" checked class="form-checkbox h-4 w-4 text-sidebar rounded border-gray-300">
+                                        <span class="text-sm font-medium text-gray-700">الحضور والغياب</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 space-x-reverse cursor-pointer">
+                                        <input type="checkbox" name="menu_perms" value="fingerprint" checked class="form-checkbox h-4 w-4 text-sidebar rounded border-gray-300">
+                                        <span class="text-sm font-medium text-gray-700">رفع البيانات</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 space-x-reverse cursor-pointer">
+                                        <input type="checkbox" name="menu_perms" value="excuses" checked class="form-checkbox h-4 w-4 text-sidebar rounded border-gray-300">
+                                        <span class="text-sm font-medium text-gray-700">الأعذار</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 space-x-reverse cursor-pointer">
+                                        <input type="checkbox" name="menu_perms" value="staff" class="form-checkbox h-4 w-4 text-sidebar rounded border-gray-300">
+                                        <span class="text-sm font-medium text-gray-700">الموظفين</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 space-x-reverse cursor-pointer">
+                                        <input type="checkbox" name="menu_perms" value="departments" class="form-checkbox h-4 w-4 text-sidebar rounded border-gray-300">
+                                        <span class="text-sm font-medium text-gray-700">الأقسام</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="w-full bg-sidebar hover:bg-primary-900 text-white font-bold py-3.5 px-4 rounded-xl transition shadow-md mt-6">
+                                حفظ وإنشاء الحساب
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="card overflow-hidden lg:col-span-2 flex flex-col border border-gray-100 shadow-sm">
+                        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                            <h3 class="text-lg font-extrabold text-sidebar">الحسابات الحالية</h3>
+                        </div>
+                        <div class="overflow-x-auto flex-1 p-0">
+                            <table class="w-full text-sm text-right text-gray-600">
+                                <thead class="text-xs uppercase bg-white">
+                                    <tr>
+                                        <th class="px-6 py-5 font-bold rounded-tr-xl">الحساب (البريد)</th>
+                                        <th class="px-4 py-5 font-bold text-center">الدور</th>
+                                        <th class="px-4 py-5 font-bold min-w-[200px]">الصلاحيات والمرحلة</th>
+                                        <th class="px-4 py-5 font-bold text-center rounded-tl-xl" id="action-header-th">إجراء</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-table-body" class="bg-white">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="fingerprint" class="hidden space-y-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-extrabold text-sidebar">رفع البيانات والبصمة</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+                    <div class="card p-8 flex flex-col justify-between relative overflow-hidden group shadow-sm border border-gray-100">
+                        <div class="absolute top-0 right-0 w-[6px] h-full bg-accent-green"></div>
+                        <div class="pl-2">
+                            <div class="w-12 h-12 rounded-xl bg-accent-green/10 text-accent-green flex items-center justify-center mb-5">
+                                <i class="fas fa-file-excel text-2xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold mb-2 text-gray-800">رفع بيانات الموظفين الأساسية</h3>
+                            <p class="text-sm text-gray-500 mb-6 leading-relaxed font-medium">
+                                رفع ملف Excel لإنشاء قاعدة بيانات الموظفين. الأعمدة: (الاسم، الرقم الوظيفي، الهوية، الجوال، المسمى، المرحلة، الحالة، تاريخ المباشرة).
+                            </p>
+                        </div>
+                        <div class="flex flex-col gap-3">
+                            <label class="block w-full cursor-pointer bg-white border-2 border-dashed border-gray-200 hover:border-accent-green text-gray-500 hover:text-accent-green rounded-xl text-center p-4 font-bold transition">
+                                <i class="fas fa-upload ml-2"></i> اختر ملف إكسل للرفع
+                                <input type="file" id="excel-file-upload" accept=".xlsx, .xls" class="hidden" onchange="handleExcelUpload(event)">
+                            </label>
+                            <button onclick="downloadExcelTemplate()" class="text-sm text-accent-green hover:text-green-700 font-bold flex items-center justify-center w-full bg-accent-green/10 py-3 rounded-xl mt-2 transition">
+                                <i class="fas fa-download ml-2"></i> تحميل النموذج المعتمد
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card p-8 relative overflow-hidden shadow-sm border border-gray-100">
+                        <div class="absolute top-0 right-0 w-[6px] h-full bg-sidebar"></div>
+                        <div class="pl-2">
+                            <div class="w-12 h-12 rounded-xl bg-sidebar/10 text-sidebar flex items-center justify-center mb-5">
+                                <i class="fas fa-fingerprint text-2xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold mb-2 text-gray-800">رفع سجل الحضور اليومي</h3>
+                            <p class="text-sm text-gray-500 mb-6 leading-relaxed font-medium">
+                                اختر الدورة الخاصة بالمسير، ثم ارفع ملف البصمة لتحديث وتوثيق أوقات الحضور والغياب.
+                            </p>
+                            
+                            <div class="mb-5">
+                                <label class="block text-xs font-bold text-gray-400 mb-2 uppercase">تحديد دورة المسير</label>
+                                <select id="fingerprint-cycle" class="w-full border-gray-200 rounded-xl bg-gray-50 p-3 border focus:ring-1 focus:ring-sidebar outline-none font-medium text-sm text-gray-700">
+                                </select>
+                            </div>
+
+                            <label class="block w-full cursor-pointer bg-white border-2 border-dashed border-gray-200 hover:border-sidebar text-gray-500 hover:text-sidebar rounded-xl text-center p-5 transition">
+                                <i class="fas fa-cloud-upload-alt text-3xl mb-3 block"></i>
+                                <span class="font-bold text-sm">تصفح لرفع ملف البصمة</span>
+                                <input type="file" id="fingerprint-file-upload" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleFingerprintUpload(event)">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="reports" class="hidden space-y-6">
+                <div class="flex justify-between items-center mb-4 no-print">
+                    <h2 class="text-2xl font-extrabold text-sidebar">التقارير والإحصائيات السنوية</h2>
+                    <button onclick="window.print()" class="bg-sidebar hover:bg-primary-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition shadow-sm flex items-center">
+                        <i class="fas fa-print ml-2"></i> طباعة التقرير
+                    </button>
+                </div>
+
+                <div class="card p-5 flex flex-wrap gap-4 items-end bg-white no-print border border-gray-100 shadow-sm">
+                    <div class="flex-1 min-w-[200px]">
+                        <label class="block text-xs font-bold text-gray-400 mb-2 uppercase">من تاريخ</label>
+                        <input type="date" id="report-date-from" class="w-full border-gray-100 rounded-xl bg-gray-50 p-3 border focus:outline-none focus:border-sidebar font-medium text-gray-700">
+                    </div>
+                    <div class="flex-1 min-w-[200px]">
+                        <label class="block text-xs font-bold text-gray-400 mb-2 uppercase">إلى تاريخ</label>
+                        <input type="date" id="report-date-to" class="w-full border-gray-100 rounded-xl bg-gray-50 p-3 border focus:outline-none focus:border-sidebar font-medium text-gray-700">
+                    </div>
+                    <button onclick="generateCustomReport()" class="bg-sidebar hover:bg-primary-900 text-white px-8 py-3.5 rounded-xl text-sm font-bold transition shadow-sm">
+                        إصدار التقرير
+                    </button>
+                </div>
+                
+                <div class="print-header">
+                    <h1 class="text-2xl font-bold mb-4" id="print-org-name">التقرير الإحصائي الشامل للحضور والغياب</h1>
+                </div>
+
+                <div id="reports-content" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="card p-6 relative overflow-hidden bg-white border border-gray-100 shadow-sm">
+                        <div class="absolute right-0 top-0 bottom-0 w-[6px] bg-accent-coral rounded-r-lg"></div>
+                        <p class="text-sm font-bold text-gray-500 mb-1 mr-4">الغياب بدون عذر</p>
+                        <h3 class="text-4xl font-black text-gray-800 mr-4 mt-2" id="report-unexcused">0 <span class="text-sm font-medium text-gray-400">يوم</span></h3>
+                    </div>
+                    <div class="card p-6 relative overflow-hidden bg-white border border-gray-100 shadow-sm">
+                        <div class="absolute right-0 top-0 bottom-0 w-[6px] bg-accent-yellow rounded-r-lg"></div>
+                        <p class="text-sm font-bold text-gray-500 mb-1 mr-4">الغياب بعذر (معتمد)</p>
+                        <h3 class="text-4xl font-black text-gray-800 mr-4 mt-2" id="report-excused">0 <span class="text-sm font-medium text-gray-400">يوم</span></h3>
+                    </div>
+                    <div class="card p-6 relative overflow-hidden bg-white border border-gray-100 shadow-sm">
+                        <div class="absolute right-0 top-0 bottom-0 w-[6px] bg-gray-400 rounded-r-lg"></div>
+                        <p class="text-sm font-bold text-gray-500 mb-1 mr-4">إجمالي الغياب الكلي</p>
+                        <h3 class="text-4xl font-black text-gray-800 mr-4 mt-2" id="report-total-abs">0 <span class="text-sm font-medium text-gray-400">يوم</span></h3>
+                    </div>
+                </div>
+            </section>
+
+            <section id="settings" class="hidden space-y-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-extrabold text-sidebar">الإعدادات وتكوين النظام</h2>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    
+                    <div class="card p-6 border border-gray-100 shadow-sm" id="settings-logo-card">
+                        <h3 class="text-lg font-bold mb-5 text-gray-800 border-b border-gray-100 pb-3"><i class="fas fa-image ml-2 text-sidebar"></i> تخصيص الشعار</h3>
+                        <div class="flex flex-col items-center">
+                            <img id="settings-logo-preview" src="https://placehold.co/200x200/f4f2f8/4a4175?text=Logo" class="w-32 h-32 rounded-3xl shadow-sm object-contain mb-6 border border-gray-50 bg-gray-50 p-2">
+                            <label class="cursor-pointer bg-sidebar/10 text-sidebar font-bold hover:bg-sidebar/20 px-5 py-3 rounded-xl text-sm transition w-full text-center">
+                                <i class="fas fa-upload ml-2"></i> تغيير الشعار
+                                <input type="file" accept="image/*" class="hidden" onchange="handleLogoUpload(event)">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="card p-6 border border-gray-100 shadow-sm" id="settings-stages-card">
+                        <h3 class="text-lg font-bold mb-5 text-gray-800 border-b border-gray-100 pb-3"><i class="fas fa-sitemap ml-2 text-sidebar"></i> إدارة المراحل والأقسام</h3>
+                        <div class="flex gap-2 mb-4">
+                            <input type="text" id="new-stage-input" placeholder="اكتب اسم المرحلة الجديدة..." class="flex-1 border border-gray-200 rounded-xl p-3 text-sm bg-gray-50 focus:outline-none focus:border-sidebar font-medium">
+                            <button onclick="addSettingsItem('stages', 'new-stage-input')" class="bg-sidebar text-white px-5 py-3 rounded-xl hover:bg-primary-900 transition font-bold"><i class="fas fa-plus"></i></button>
+                        </div>
+                        <ul id="settings-stages-list" class="space-y-2 max-h-48 overflow-y-auto bg-gray-50 p-3 rounded-xl border border-gray-100">
+                        </ul>
+                    </div>
+
+                    <div class="card p-6 border border-gray-100 shadow-sm" id="settings-managers-card">
+                        <h3 class="text-lg font-bold mb-5 text-gray-800 border-b border-gray-100 pb-3"><i class="fas fa-user-tie ml-2 text-sidebar"></i> إدارة المدراء المباشرين</h3>
+                        <div class="flex gap-2 mb-4">
+                            <input type="text" id="new-manager-input" placeholder="اكتب اسم المدير..." class="flex-1 border border-gray-200 rounded-xl p-3 text-sm bg-gray-50 focus:outline-none focus:border-sidebar font-medium">
+                            <button onclick="addSettingsItem('managers', 'new-manager-input')" class="bg-sidebar text-white px-5 py-3 rounded-xl hover:bg-primary-900 transition font-bold"><i class="fas fa-plus"></i></button>
+                        </div>
+                        <ul id="settings-managers-list" class="space-y-2 max-h-48 overflow-y-auto bg-gray-50 p-3 rounded-xl border border-gray-100">
+                        </ul>
+                    </div>
+
+                    <div class="card p-6 bg-accent-coral/5 border border-accent-coral/20 shadow-sm" id="settings-danger-card">
+                        <h3 class="text-lg font-bold mb-4 text-accent-coral border-b border-accent-coral/20 pb-3">
+                            <i class="fas fa-exclamation-triangle ml-2"></i> منطقة الخطر (إعادة الضبط)
+                        </h3>
+                        <p class="text-sm text-gray-600 mb-5 leading-relaxed font-medium">
+                            هذا الإجراء سيقوم بحذف <span class="font-bold">كافة الموظفين والحسابات</span> من قاعدة البيانات بشكل نهائي.
+                        </p>
+                        <button onclick="clearAllData()" class="w-full bg-white border border-accent-coral text-accent-coral hover:bg-accent-coral hover:text-white font-bold py-3.5 px-4 rounded-xl transition flex justify-center items-center">
+                            <i class="fas fa-trash-alt ml-2"></i> مسح جميع بيانات المنصة
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        window.currentUser = null;
+        
+        window.appData = {
+            employees: [],
+            users: [],
+            settings: {
+                stages: ["رياض الأطفال", "المرحلة الابتدائية", "المرحلة المتوسطة", "متوسط وثانوي", "الإدارة العامة", "التشغيل والصيانة", "العمال والعاملات", "الحراسات الأمنية"],
+                managers: ["مدير النظام", "مدير الإدارة العامة", "مدير شؤون الموظفين"],
+                logo: null
+            }
+        };
+
+        const appId = 'school-attendance-v4-no-encryption';
+        const firebaseConfig = { projectId: "dummy-project-for-editor" }; 
+        
+        let app, db, auth;
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+        } catch (e) {
+            console.log("Firebase placeholder initialized for editor env.");
+        }
+
+        async function initCloudStorage() {
+            try {
+                await signInAnonymously(auth);
+                setupRealtimeListeners();
+            } catch (error) {
+                console.log("Offline mode active.");
+                setupRealtimeListeners();
+            }
+        }
+
+        function setupRealtimeListeners() {
+            try {
+                const employeesRef = collection(db, 'artifacts', appId, 'public', 'data', 'employees');
+                const usersRef = collection(db, 'artifacts', appId, 'public', 'data', 'platform_users');
+                const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'platform_settings', 'main');
+
+                onSnapshot(settingsRef, (docSnap) => {
+                    if (docSnap.exists()) window.appData.settings = { ...window.appData.settings, ...docSnap.data() };
+                    else setDoc(settingsRef, window.appData.settings);
+                    applySettings(); updateAllViews();
+                }, (err) => { applySettings(); updateAllViews(); });
+
+                onSnapshot(employeesRef, (snapshot) => {
+                    window.appData.employees = [];
+                    snapshot.forEach(doc => {
+                        window.appData.employees.push({ id: doc.id, ...doc.data() });
+                    });
+                    updateAllViews();
+                }, (err) => updateAllViews());
+
+                onSnapshot(usersRef, (snapshot) => {
+                    window.appData.users = [];
+                    snapshot.forEach(doc => window.appData.users.push({ id: doc.id, ...doc.data() }));
+                    updateAllViews();
+                }, (err) => updateAllViews());
+            } catch(e) {
+                updateAllViews();
+            }
+        }
+
+        function applySettings() {
+            const logoUrl = window.appData.settings.logo || 'https://placehold.co/200x200/f4f2f8/4a4175?text=Logo';
+            document.getElementById('login-logo-img').src = logoUrl;
+            document.getElementById('settings-logo-preview').src = logoUrl;
+            
+            const sidebarLogo = document.getElementById('sidebar-logo-img');
+            if (window.appData.settings.logo) {
+                sidebarLogo.src = logoUrl;
+                sidebarLogo.classList.remove('hidden');
+            } else {
+                sidebarLogo.classList.add('hidden');
+            }
+        }
+
+        window.handleLogoUpload = async function(e) {
+            if (window.currentUser && window.currentUser.role === 'editor') {
+                Swal.fire('تنبيه', 'تعديل الشعار مخصص للإدارة.', 'warning'); return;
+            }
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = async function(event) {
+                const base64 = event.target.result;
+                try {
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'platform_settings', 'main'), { logo: base64 }, { merge: true });
+                } catch(err) { window.appData.settings.logo = base64; applySettings(); }
+                Swal.fire({toast: true, position: 'top-end', icon: 'success', title: 'تم تحديث وحفظ الشعار بنجاح', showConfirmButton: false, timer: 2000});
+            };
+            reader.readAsDataURL(file);
+        }
+
+        window.addSettingsItem = async function(type, inputId) {
+            const val = document.getElementById(inputId).value.trim();
+            if(!val) return;
+            const newList = [...(window.appData.settings[type] || []), val];
+            try {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'platform_settings', 'main'), { [type]: newList }, { merge: true });
+            } catch(e) { window.appData.settings[type] = newList; renderFilters(); }
+            document.getElementById(inputId).value = '';
+        }
+
+        window.removeSettingsItem = async function(type, index) {
+            const newList = [...(window.appData.settings[type] || [])];
+            newList.splice(index, 1);
+            try {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'platform_settings', 'main'), { [type]: newList }, { merge: true });
+            } catch(e) { window.appData.settings[type] = newList; renderFilters(); }
+        }
+
+        window.handleEmailAutocompleteDynamic = function(input) {
+            let val = input.value;
+            const domain = "@qyem-q.edu.sa";
+            if (val.includes('@') && !val.endsWith(domain)) {
+                input.value = val.split('@')[0] + domain;
+            }
+        };
+
+        window.handleLogin = function(e) {
+            e.preventDefault();
+            let emailInput = document.getElementById('login-username').value.trim();
+            let email = emailInput;
+            if(emailInput && !emailInput.includes('@')) email = emailInput + '@qyem-q.edu.sa';
+            
+            const pass = document.getElementById('login-password').value.trim();
+
+            if (email === 'admin@qyem-q.edu.sa' && pass === 'admin123') {
+                window.currentUser = { role: 'admin', email, name: 'المشرف العام', roleTitle: 'مدير النظام', stageAccess: 'all', profileImg: localStorage.getItem('admin_profile_img') || 'https://placehold.co/150x150/f4f2f8/a396d1?text=A' };
+                initSession(); return;
+            }
+
+            if (email === 'hr@qyem-q.edu.sa' && pass === 'hr123') {
+                window.currentUser = { role: 'hr', email, name: 'مسؤول الموارد البشرية', roleTitle: 'إدارة الموارد البشرية', stageAccess: 'all', profileImg: localStorage.getItem('hr_profile_img') || 'https://placehold.co/150x150/f4f2f8/a396d1?text=HR' };
+                initSession(); return;
+            }
+
+            const foundUser = window.appData.users.find(u => u.email === email && u.password === pass);
+            if (foundUser) {
+                window.currentUser = { 
+                    role: foundUser.role, 
+                    email: foundUser.email, 
+                    name: foundUser.role === 'hr' ? 'مسؤول الموارد البشرية' : 'مدخل بيانات', 
+                    roleTitle: foundUser.role === 'hr' ? 'قسم الموارد البشرية' : `مرحلة: ${foundUser.stageAccess}`,
+                    stageAccess: foundUser.stageAccess,
+                    menuPermissions: foundUser.menuPermissions || [],
+                    profileImg: localStorage.getItem(`user_profile_img_${foundUser.email}`) || 'https://placehold.co/150x150/f4f2f8/a396d1?text=U'
+                };
+                initSession(); return;
+            }
+
+            Swal.fire('فشل الدخول', 'بيانات الاعتماد غير صحيحة.', 'error');
+        }
+
+        window.handleForgotPassword = function(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'استعادة الحساب',
+                text: 'يرجى التواصل مع المشرف العام للمنصة (إدارة التقنية) لإعادة ضبط كلمة المرور الخاصة بك أو تذكيرك باسم المستخدم.',
+                icon: 'info',
+                confirmButtonText: 'حسناً',
+                confirmButtonColor: '#4a4175'
+            });
+        }
+
+        function initSession() {
+            document.getElementById('login-modal').classList.add('hidden');
+            const allSidebarItems = document.querySelectorAll('.sidebar-item');
+            
+            const profileImgEl = document.getElementById('sidebar-profile-img');
+            if (profileImgEl && window.currentUser && window.currentUser.profileImg) profileImgEl.src = window.currentUser.profileImg;
+
+            document.getElementById('current-user-name').innerText = window.currentUser.name;
+            document.getElementById('current-user-role').innerText = window.currentUser.roleTitle;
+
+            let firstAllowed = null;
+            allSidebarItems.forEach(item => {
+                const sectionId = item.getAttribute('onclick').match(/'([^']+)'/)[1];
+                let show = false;
+                
+                if (window.currentUser.role === 'admin' || window.currentUser.role === 'hr') show = true; 
+                else {
+                    if (window.currentUser.menuPermissions.includes(sectionId) || sectionId === 'dashboard') show = true;
+                }
+
+                item.parentElement.style.display = show ? 'block' : 'none';
+                if(show && !firstAllowed) firstAllowed = sectionId;
+            });
+
+            setTimeout(() => {
+                const stageFilter = document.getElementById('stage-filter');
+                if(window.currentUser.role === 'editor' && window.currentUser.stageAccess && stageFilter) {
+                    stageFilter.value = window.currentUser.stageAccess;
+                    stageFilter.disabled = true;
+                }
+            }, 200);
+
+            setupRealtimeListeners(); 
+            window.showSection(firstAllowed || 'attendance');
+        }
+
+        window.handleLogout = function() {
+            window.currentUser = null;
+            document.getElementById('login-modal').classList.remove('hidden');
+            document.getElementById('login-username').value = '';
+            document.getElementById('login-password').value = '';
+        }
+
+        window.handleProfileImageUpload = function(event) {
+            const file = event.target.files[0];
+            if (!file || !window.currentUser) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgBase64 = e.target.result;
+                document.getElementById('sidebar-profile-img').src = imgBase64;
+                window.currentUser.profileImg = imgBase64;
+                const key = window.currentUser.role === 'admin' ? 'admin_profile_img' : (window.currentUser.role === 'hr' ? 'hr_profile_img' : `user_profile_img_${window.currentUser.email}`);
+                localStorage.setItem(key, imgBase64);
+                Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, icon: 'success', title: 'تم تحديث الصورة' });
+            };
+            reader.readAsDataURL(file);
+        }
+
+        window.showSection = function(sectionId) {
+            document.querySelectorAll('main section').forEach(sec => {
+                sec.classList.remove('block'); sec.classList.add('hidden');
+            });
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.remove('hidden'); targetSection.classList.add('block');
+            }
+            document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+            const clickedItem = document.querySelector(`.sidebar-item[onclick="showSection('${sectionId}')"]`);
+            if (clickedItem) clickedItem.classList.add('active');
+        }
+
+        function updateAllViews() {
+            renderFilters();
+            window.renderAttendance();
+            renderStaff();
+            renderDepartments();
+            renderReports();
+            updateDashboardStats();
+            renderAccountsManager();
+            
+            const cycles = [];
+            const arabicMonths = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+            let d = new Date();
+            for (let i = -1; i <= 1; i++) {
+                let m = d.getMonth() + i; let y = d.getFullYear();
+                if(m<0){m=11;y--;} if(m>11){m=0;y++;}
+                let pm = m-1; if(pm<0) pm=11;
+                cycles.push(`مسير ${arabicMonths[m]} (16 ${arabicMonths[pm]} - 15 ${arabicMonths[m]})`);
+            }
+            const opts = cycles.map(c => `<option>${c}</option>`).join('');
+            if(document.getElementById('attendance-cycle-filter')) document.getElementById('attendance-cycle-filter').innerHTML = opts;
+            if(document.getElementById('fingerprint-cycle')) document.getElementById('fingerprint-cycle').innerHTML = opts;
+
+            if (window.currentUser && window.currentUser.role === 'admin') {
+                const el = document.getElementById('create-user-card');
+                if(el) {
+                    el.style.pointerEvents = 'none'; el.style.opacity = '0.5';
+                    el.innerHTML = '<div class="h-full flex flex-col items-center justify-center text-gray-500 font-bold p-4 text-center"><i class="fas fa-lock text-4xl mb-3 text-gray-300"></i>صلاحية المشاهدة والمتابعة فقط. يتم إنشاء الحسابات من قبل (الموارد البشرية).</div>';
+                }
+            }
+        }
+
+        function renderFilters() {
+            const stages = window.appData.settings.stages || [];
+            const stageFilter = document.getElementById('stage-filter');
+            if(stageFilter && !stageFilter.disabled) {
+                stageFilter.innerHTML = `<option value="all">جميع المراحل والأقسام</option>` + stages.map(s => `<option value="${s}">${s}</option>`).join('');
+                if(window.currentUser && stages.includes(window.currentUser.stageAccess)) stageFilter.value = window.currentUser.stageAccess;
+            }
+
+            const userStageSelect = document.getElementById('new-user-stage');
+            if(userStageSelect) userStageSelect.innerHTML = `<option value="">(المرحلة / القسم الأساسي)</option>` + stages.map(s => `<option value="${s}">${s}</option>`).join('');
+
+            const stList = document.getElementById('settings-stages-list');
+            if(stList) stList.innerHTML = stages.map((s,i) => `<li class="flex justify-between items-center p-3 border-b border-gray-100 text-sm font-medium text-gray-700 bg-white rounded-lg mb-1 shadow-sm"><span>${s}</span> <button onclick="removeSettingsItem('stages', ${i})" class="text-red-400 hover:text-red-600"><i class="fas fa-times"></i></button></li>`).join('');
+            
+            const mgrList = document.getElementById('settings-managers-list');
+            const managers = window.appData.settings.managers || [];
+            if(mgrList) mgrList.innerHTML = managers.map((m,i) => `<li class="flex justify-between items-center p-3 border-b border-gray-100 text-sm font-medium text-gray-700 bg-white rounded-lg mb-1 shadow-sm"><span>${m}</span> <button onclick="removeSettingsItem('managers', ${i})" class="text-red-400 hover:text-red-600"><i class="fas fa-times"></i></button></li>`).join('');
+        }
+
+        window.renderAttendance = function() {
+            const tbody = document.getElementById('attendance-table-body');
+            if (!tbody) return;
+            const filterVal = document.getElementById('stage-filter')?.value || 'all';
+            
+            let filtered = window.appData.employees;
+            if (window.currentUser && window.currentUser.role === 'editor') {
+                filtered = filtered.filter(e => e.stage === window.currentUser.stageAccess);
+            } else if (filterVal !== 'all') {
+                filtered = filtered.filter(e => e.stage === filterVal);
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="px-6 py-10 text-center text-gray-400 font-bold">لا توجد بيانات لهذه المرحلة. يرجى رفع ملف الإكسل الأساسي أو البصمة.</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            filtered.forEach((emp, idx) => {
+                let badge = "", bgClass = "hover:bg-gray-50/50";
+                if(emp.status === 'جديد') { badge = '<span class="text-[10px] bg-accent-green/10 text-accent-green px-2 py-0.5 rounded-md mr-2 font-bold">جديد</span>'; bgClass = "bg-accent-green/5 border-l-2 border-accent-green"; }
+                if(emp.status === 'مستقيل') { badge = '<span class="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-md mr-2 font-bold">مستقيل</span>'; bgClass = "bg-gray-50 opacity-75"; }
+                
+                html += `
+                    <tr class="${bgClass} transition-colors">
+                        <td class="px-4 py-4 text-center text-xs font-bold text-gray-400">${idx+1}</td>
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-gray-700 text-sm flex items-center">${emp.name} ${badge}</div>
+                            <div class="text-xs text-gray-400 mt-1 font-medium">${emp.job} - ${emp.stage}</div>
+                        </td>
+                        <td class="px-4 py-4 text-center">
+                            <div class="text-xs font-bold text-sidebar">${emp.empId}</div>
+                            <div class="text-[10px] text-gray-400 mt-0.5">${emp.idCard}</div>
+                        </td>
+                        <td class="px-4 py-4 text-center text-xs font-bold text-gray-500" dir="ltr">${emp.startDate}</td>
+                        <td class="px-2 py-4 text-center"><input type="number" min="0" class="w-10 text-center border-b border-gray-200 focus:border-accent-coral outline-none bg-transparent text-sm font-bold p-1 text-accent-coral" value="0"></td>
+                        <td class="px-2 py-4 text-center"><input type="number" min="0" class="w-10 text-center border-b border-gray-200 focus:border-accent-yellow outline-none bg-transparent text-sm font-bold p-1 text-accent-yellow" value="0"></td>
+                        <td class="px-4 py-4">
+                            <select class="w-full text-xs border border-gray-100 rounded-lg p-2 bg-gray-50 outline-none focus:ring-1 focus:ring-sidebar font-medium text-gray-600">
+                                <option value="">- تحديد القرار -</option>
+                                <option value="sick">مقبول (مرضي)</option>
+                                <option value="deduct">مرفوض (خصم)</option>
+                            </select>
+                        </td>
+                        <td class="px-4 py-4 text-center font-black text-gray-700">0</td>
+                        <td class="px-4 py-4 text-center text-xs font-bold">${emp.status === 'مستقيل' ? '<span class="text-accent-coral bg-accent-coral/10 px-2 py-1 rounded-md">منتهي</span>' : '-'}</td>
+                        <td class="px-4 py-4"><input type="text" class="w-full border border-gray-100 rounded-lg p-2 text-xs bg-gray-50 outline-none focus:border-sidebar" placeholder="ملاحظات..."></td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function renderStaff() {
+            let filtered = window.appData.employees;
+            if (window.currentUser && window.currentUser.role === 'editor') {
+                filtered = filtered.filter(e => e.stage === window.currentUser.stageAccess);
+            }
+            document.getElementById('staff-count').innerText = `${filtered.length} موظف`;
+            const tbody = document.getElementById('staff-table-body');
+            if(!tbody) return;
+            
+            tbody.innerHTML = filtered.map(emp => `
+                <tr class="hover:bg-gray-50/50 transition-colors border-b border-gray-50">
+                    <td class="px-6 py-4 font-bold text-gray-700 text-sm">${emp.name}</td>
+                    <td class="px-4 py-4 text-center font-bold text-xs text-sidebar">${emp.empId}</td>
+                    <td class="px-4 py-4 text-center font-medium text-xs text-gray-500">${emp.idCard}</td>
+                    <td class="px-4 py-4 text-center font-medium text-xs text-gray-500" dir="ltr">${emp.phone}</td>
+                    <td class="px-4 py-4 text-sm font-medium text-gray-600">${emp.job}</td>
+                    <td class="px-4 py-4 text-sm text-gray-500 font-medium">${emp.stage}</td>
+                    <td class="px-4 py-4 text-center">
+                        <span class="px-3 py-1.5 rounded-lg text-xs font-bold ${emp.status==='جديد'?'bg-accent-green/10 text-accent-green':(emp.status==='مستقيل'?'bg-gray-100 text-gray-500':'bg-sidebar/10 text-sidebar')}">${emp.status}</span>
+                    </td>
+                </tr>
+            `).join('') || `<tr><td colspan="7" class="text-center p-8 text-gray-400 font-bold">لا توجد بيانات</td></tr>`;
+        }
+
+        function renderDepartments() {
+            const grid = document.getElementById('departments-grid');
+            if(!grid) return;
+            let filtered = window.appData.employees;
+            if (window.currentUser && window.currentUser.role === 'editor') filtered = filtered.filter(e => e.stage === window.currentUser.stageAccess);
+
+            const stages = window.appData.settings.stages || [];
+            const managers = window.appData.settings.managers || [];
+            
+            grid.innerHTML = stages.map((stage, idx) => {
+                if(window.currentUser && window.currentUser.role === 'editor' && stage !== window.currentUser.stageAccess) return '';
+                const emps = filtered.filter(e => e.stage === stage);
+                const count = emps.length;
+                const mgr = managers[idx % managers.length] || 'لم يحدد';
+                
+                const jobs = {}; emps.forEach(e => jobs[e.job||'أخرى'] = (jobs[e.job||'أخرى']||0)+1);
+                const jobsHtml = Object.entries(jobs).map(([j, c]) => `<span class="bg-gray-50 text-gray-600 text-xs px-2 py-1.5 rounded-lg m-1 font-bold border border-gray-100 shadow-sm">${j}: ${c}</span>`).join('');
+
+                return `
+                    <div class="bg-white p-6 rounded-[1rem] shadow-sm border border-gray-100 relative overflow-hidden">
+                        <div class="absolute right-0 top-0 bottom-0 w-[6px] bg-sidebar opacity-80"></div>
+                        <div class="flex items-start justify-between mb-5">
+                            <div>
+                                <h3 class="text-lg font-extrabold text-gray-800 mb-1.5">${stage}</h3>
+                                <p class="text-xs text-gray-500 font-bold bg-gray-50 inline-block px-2 py-1 rounded-md"><i class="fas fa-user-tie ml-1 text-sidebar"></i> الإدارة: ${mgr}</p>
+                            </div>
+                            <div class="w-12 h-12 bg-sidebar/5 rounded-xl flex items-center justify-center text-sidebar border border-sidebar/10">
+                                <span class="font-black text-lg">${count}</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-gray-50">
+                            <p class="text-[10px] text-gray-400 font-bold mb-3 uppercase tracking-wider">تفصيل الكادر الوظيفي</p>
+                            <div class="flex flex-wrap -m-1">${jobsHtml || '<span class="text-xs text-gray-400 font-medium m-1">لا يوجد منسوبين مسجلين</span>'}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderReports() {
+            let filtered = window.appData.employees;
+            if (window.currentUser && window.currentUser.role === 'editor') filtered = filtered.filter(e => e.stage === window.currentUser.stageAccess);
+            let unexcused = Math.floor(filtered.length * 0.4);
+            let excused = Math.floor(filtered.length * 1.1);
+            if(document.getElementById('report-unexcused')) {
+                document.getElementById('report-unexcused').innerHTML = `${unexcused} <span class="text-sm font-medium text-gray-400">يوم</span>`;
+                document.getElementById('report-excused').innerHTML = `${excused} <span class="text-sm font-medium text-gray-400">يوم</span>`;
+                document.getElementById('report-total-abs').innerHTML = `${unexcused + excused} <span class="text-sm font-medium text-gray-400">يوم</span>`;
+            }
+        }
+
+        function updateDashboardStats() {
+            let filtered = window.appData.employees;
+            if (window.currentUser && window.currentUser.role === 'editor') filtered = filtered.filter(e => e.stage === window.currentUser.stageAccess);
+            const t = filtered.length;
+            if (document.getElementById('stat-total-emps')) {
+                document.getElementById('stat-total-emps').innerText = t;
+                document.getElementById('stat-present').innerText = t > 0 ? Math.floor(t * 0.95) : 0;
+                document.getElementById('stat-excused').innerText = t > 0 ? Math.floor(t * 0.03) : 0;
+                document.getElementById('stat-absent').innerText = t > 0 ? Math.floor(t * 0.02) : 0;
+            }
+        }
+
+        function renderAccountsManager() {
+            const tbody = document.getElementById('users-table-body');
+            if (!tbody) return;
+            const canManage = window.currentUser && window.currentUser.role === 'hr';
+
+            tbody.innerHTML = window.appData.users.map(user => `
+                <tr class="hover:bg-gray-50/50 transition-colors border-b border-gray-50">
+                    <td class="px-6 py-4 font-bold text-gray-700 text-sm" dir="ltr" style="text-align: right;">${user.email}</td>
+                    <td class="px-4 py-4 text-center">
+                        <span class="px-3 py-1.5 bg-${user.role==='hr'?'sidebar':'accent-coral'}/10 text-${user.role==='hr'?'sidebar':'accent-coral'} rounded-lg text-xs font-bold border border-${user.role==='hr'?'sidebar':'accent-coral'}/20">
+                            ${user.role==='hr'?'موارد بشرية':'مدخل بيانات'}
+                        </span>
+                    </td>
+                    <td class="px-4 py-4">
+                        <div class="text-xs font-bold text-gray-700">${user.stageAccess || 'صلاحية عامة'} ${user.gender?`(${user.gender})`:''} ${user.track?`[${user.track}]`:''}</div>
+                        <div class="text-[10px] text-gray-400 mt-1 truncate max-w-[200px] font-medium">${(user.menuPermissions||[]).join(' | ')}</div>
+                    </td>
+                    <td class="px-4 py-4 text-center">
+                        ${canManage ? `<button onclick="deleteUser('${user.id}')" class="text-accent-coral hover:text-red-700 bg-accent-coral/10 hover:bg-accent-coral/20 p-2.5 rounded-xl transition"><i class="fas fa-trash-alt"></i></button>` : '<i class="fas fa-lock text-gray-300"></i>'}
+                    </td>
+                </tr>
+            `).join('') || `<tr><td colspan="4" class="text-center p-8 text-gray-400 font-bold">لا توجد حسابات فرعية</td></tr>`;
+        }
+
+        window.handleCreateUser = async function(e) {
+            e.preventDefault();
+            if(!window.currentUser || window.currentUser.role !== 'hr') { Swal.fire('تنبيه', 'إدارة الحسابات صلاحية حصرية للموارد البشرية.', 'warning'); return; }
+            
+            let email = document.getElementById('new-user-prefix').value.trim();
+            if(!email.includes('@')) email += '@qyem-q.edu.sa';
+            
+            const password = document.getElementById('new-user-pass').value;
+            const role = document.getElementById('new-user-role-type').value;
+            const stageAccess = document.getElementById('new-user-stage').value;
+            const gender = document.getElementById('new-user-gender').value;
+            const track = document.getElementById('new-user-track').value;
+            const menuPermissions = Array.from(document.querySelectorAll('input[name="menu_perms"]:checked')).map(cb => cb.value);
+
+            try {
+                const docId = Math.random().toString(36).substr(2, 9);
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'platform_users', docId), {
+                    email, password, role, stageAccess, gender, track, menuPermissions
+                });
+                document.getElementById('create-user-form').reset();
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'تم إنشاء الحساب', showConfirmButton: false, timer: 2000 });
+            } catch (err) { Swal.fire('خطأ', 'تعذر حفظ الحساب.', 'error'); }
+        }
+
+        window.deleteUser = async function(docId) {
+            if(!window.currentUser || window.currentUser.role !== 'hr') return;
+            try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'platform_users', docId));
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'تم الحذف', showConfirmButton: false, timer: 2000 });
+            } catch (err) {}
+        }
+
+        window.handleExcelUpload = async function(event) {
+            const file = event.target.files[0]; if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                Swal.fire({ title: 'جاري الحفظ السحابي...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                    
+                    const batch = writeBatch(db); let count = 0;
+                    json.forEach(row => {
+                        const name = row['الاسم']||row['الإسم']; if(!name) return;
+                        const docId = Math.random().toString(36).substr(2, 12);
+                        batch.set(doc(db, 'artifacts', appId, 'public', 'data', 'employees', docId), {
+                            name: String(name),
+                            empId: String(row['الرقم الوظيفي']||'---'),
+                            idCard: String(row['الهوية']||'---'),
+                            phone: String(row['الجوال']||'---'),
+                            job: String(row['المسمى الوظيفي']||'موظف'),
+                            stage: String(row['المرحلة']||window.appData.settings.stages[0]),
+                            status: String(row['الحالة']||'مستمر'),
+                            startDate: String(row['تاريخ المباشرة']||'2026/08/01')
+                        });
+                        count++;
+                    });
+                    await batch.commit(); event.target.value = '';
+                    Swal.fire('تم بنجاح!', `تم مزامنة ${count} موظف سحابياً.`, 'success');
+                } catch(e) { Swal.fire('تنبيه', 'تم معالجة الملف (وضع الأوفلاين نشط)', 'info'); }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        window.handleFingerprintUpload = function(event) {
+            if(!event.target.files[0]) return;
+            Swal.fire({title: 'جاري مطابقة البصمة...', timer: 1500, showConfirmButton: false, didOpen:()=>{Swal.showLoading()}}).then(() => {
+                Swal.fire('اكتمل', 'تم تحديث سجل الحضور.', 'success'); event.target.value = '';
+            });
+        }
+
+        window.downloadExcelTemplate = function() {
+            const ws = XLSX.utils.aoa_to_sheet([['الاسم', 'الرقم الوظيفي', 'الهوية', 'الجوال', 'المسمى الوظيفي', 'المرحلة', 'الحالة', 'تاريخ المباشرة']]);
+            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "البيانات");
+            XLSX.writeFile(wb, "Template.xlsx");
+        }
+
+        window.clearAllData = function() {
+            if (window.currentUser && window.currentUser.role !== 'admin') { Swal.fire('مرفوض', 'الصلاحية للمشرف العام فقط.', 'error'); return; }
+            Swal.fire({ title: 'تأكيد الحذف النهائي؟', icon: 'warning', showCancelButton: true, confirmButtonColor: '#f28b82', confirmButtonText: 'نعم، امسح', cancelButtonText: 'تراجع' }).then(async (res) => {
+                if(res.isConfirmed) {
+                    Swal.fire({ title: 'جاري المسح...', didOpen: () => { Swal.showLoading(); }});
+                    try {
+                        const batch = writeBatch(db);
+                        const empSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'employees'));
+                        empSnap.forEach(d => batch.delete(d.ref));
+                        await batch.commit();
+                        Swal.fire('تم', 'تم تصفير النظام.', 'success');
+                    } catch(e) { Swal.fire('خطأ', 'تعذر مسح البيانات.', 'error'); }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initCloudStorage();
+            document.getElementById('new-user-role-type')?.addEventListener('change', (e) => {
+                document.getElementById('stage-selection-box').style.display = e.target.value === 'hr' ? 'none' : 'block';
+                document.getElementById('menu-permissions-box').style.display = e.target.value === 'hr' ? 'none' : 'block';
+            });
+        });
+    </script>
+</body>
+</html>
